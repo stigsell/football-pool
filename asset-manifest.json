@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/football-pool/static/css/main.c7a1ab2d.css",
-    "main.js": "/football-pool/static/js/main.eb70f430.js",
+    "main.js": "/football-pool/static/js/main.3593fddd.js",
     "static/js/453.306e1a6f.chunk.js": "/football-pool/static/js/453.306e1a6f.chunk.js",
     "index.html": "/football-pool/index.html",
     "main.c7a1ab2d.css.map": "/football-pool/static/css/main.c7a1ab2d.css.map",
-    "main.eb70f430.js.map": "/football-pool/static/js/main.eb70f430.js.map",
+    "main.3593fddd.js.map": "/football-pool/static/js/main.3593fddd.js.map",
     "453.306e1a6f.chunk.js.map": "/football-pool/static/js/453.306e1a6f.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.c7a1ab2d.css",
-    "static/js/main.eb70f430.js"
+    "static/js/main.3593fddd.js"
   ]
 }
