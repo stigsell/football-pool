@@ -2,11 +2,11 @@ import React, { useState } from "react";
 
 import FileGetter from "./FileGetter/FileGetter";
 import ScoreFetcher from "./ScoreFetcher/ScoreFetcher";
-import Games from "./Games/Games";
 import Leaderboard from "./Leaderboard/Leaderboard";
+import Tiebreaker from "./Tiebreaker/Tiebreaker";
+import Games from "./Games/Games";
 
 import "./App.css";
-import Tiebreaker from "./Tiebreaker/Tiebreaker";
 
 function App() {
   const [inputFile, setInputFile] = useState(null);
