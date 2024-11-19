@@ -8,6 +8,7 @@ const getPicks = (game, weekNum) => {
   for (const key in game) {
     picks.push({ player: key, pick: game[key] });
   }
+  picks.shift(); // shift() to remove first element of array because it is a parsing error "WK ##"
   return picks;
 };
 
