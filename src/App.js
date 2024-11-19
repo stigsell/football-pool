@@ -38,7 +38,8 @@ export const checkScore = (game, scores) => {
   )[0];
   const result = {
     status:
-      event["status"]["type"]["description"] === "In Progress"
+      event["status"]["type"]["description"] === "In Progress" ||
+      event["status"]["type"]["description"] === "End of Period"
         ? "Q" +
           event["status"]["period"] +
           " " +
