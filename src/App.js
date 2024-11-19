@@ -37,7 +37,13 @@ export const checkScore = (game, scores) => {
     (event) => event.shortName === espn_away + " @ " + espn_home
   )[0];
   const result = {
-    status: event["status"]["type"]["description"],
+    status:
+      event["status"]["type"]["description"] === "In Progress"
+        ? "Q" +
+          event["status"]["period"] +
+          " " +
+          event["status"]["displayClock"]
+        : event["status"]["type"]["description"],
     away_score: event["competitions"][0]["competitors"][1]["score"],
     home_score: event["competitions"][0]["competitors"][0]["score"], // TODO are they always in this order?
   };

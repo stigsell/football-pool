@@ -1,7 +1,7 @@
 {
   "name": "football-pool",
   "version": "0.1.0",
-  "homepage": "https://stigsell.github.io/football-pool",
+  "homepage": "http://sieglfootballpool.com",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
