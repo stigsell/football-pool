@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 const getKey = (weekNum) => "WK " + weekNum;
 
 const getPicks = (game, weekNum) => {
-  delete game[getKey(weekNum)];
+  // delete game[getKey(weekNum)];  // TODO fix this
   const picks = [];
   for (const key in game) {
     picks.push({ player: key, pick: game[key] });

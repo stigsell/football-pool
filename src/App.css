@@ -3,14 +3,25 @@
   margin-left: auto;
   margin-right: auto;
 }
-/* .FileGetter__input{
-  display: none;
-} */
 .Leaderboard {
   padding: 10px;
   text-align: center;
 }
 .Leaderboard__table {
+  width: 300px;
+  border: 1px solid;
+  padding: 10px;
+  
+  td {
+    padding: 5px;
+    width: 100px;
+  }
+}
+.Tiebreaker {
+  padding: 10px;
+  text-align: center;
+}
+.Tiebreaker__table {
   width: 300px;
   border: 1px solid;
   padding: 10px;

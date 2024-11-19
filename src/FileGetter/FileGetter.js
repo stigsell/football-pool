@@ -1,7 +1,13 @@
 import React from "react";
 import { readFile, parseFile } from "./utils";
 
-function FileGetter({ file, setFile, setGames, setWeekNum }) {
+function FileGetter({
+  file,
+  setFile,
+  setGames,
+  setWeekNum,
+  setProjectedMNFPoints,
+}) {
   async function handleChange(event) {
     setFile(null);
     const file = event.target.files[0];
@@ -14,6 +20,7 @@ function FileGetter({ file, setFile, setGames, setWeekNum }) {
     const games = parseFile(json_file, weekNum);
     setGames(games);
     console.log("games", games);
+    setProjectedMNFPoints(json_file.slice(-1)[0]);
   }
   const clearFile = () => setFile(null);
 

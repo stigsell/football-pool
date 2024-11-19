@@ -6,11 +6,13 @@ import Games from "./Games/Games";
 import Leaderboard from "./Leaderboard/Leaderboard";
 
 import "./App.css";
+import Tiebreaker from "./Tiebreaker/Tiebreaker";
 
 function App() {
   const [inputFile, setInputFile] = useState(null);
   const [weekNum, setWeekNum] = useState(0);
   const [games, setGames] = useState([]);
+  const [projectedMNFPoints, setProjectedMNFPoints] = useState({});
 
   return (
     <div className="App">
@@ -23,6 +25,7 @@ function App() {
         setFile={setInputFile}
         setGames={setGames}
         setWeekNum={setWeekNum}
+        setProjectedMNFPoints={setProjectedMNFPoints}
       />
       {inputFile !== null && (
         <>
@@ -30,6 +33,7 @@ function App() {
           <ScoreFetcher weekNumber={weekNum}>
             <Leaderboard games={games} />
           </ScoreFetcher>
+          <Tiebreaker playersProjectedMNFPoints={projectedMNFPoints} />
           <ScoreFetcher weekNumber={weekNum}>
             <Games games={games} />
           </ScoreFetcher>
