@@ -1,8 +1,9 @@
 import * as XLSX from "xlsx";
-import { PLAYERS } from "./constants";
 
-const getPicks = (game) => {
-  delete game["WK 11"];
+const getKey = (weekNum) => "WK " + weekNum;
+
+const getPicks = (game, weekNum) => {
+  delete game[getKey(weekNum)];
   const picks = [];
   for (const key in game) {
     picks.push({ player: key, pick: game[key] });
@@ -10,12 +11,14 @@ const getPicks = (game) => {
   return picks;
 };
 
-export const parseFile = (data) => {
+export const parseFile = (data, weekNum) => {
+  console.log("weekNum", weekNum);
+
   const games = [];
   for (var i = 0; i < data.length - 1; i += 2) {
     const game = {};
-    game.away = data[i]["WK 11"];
-    game.home = data[i + 1]["WK 11"];
+    game.away = data[i][getKey(weekNum)];
+    game.home = data[i + 1][getKey(weekNum)];
     game.picks = getPicks(data[i + 1]);
     games.push(game);
   }
