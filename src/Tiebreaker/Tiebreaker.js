@@ -1,7 +1,6 @@
 import React from "react";
 
 function Tiebreaker({ playersProjectedMNFPoints }) {
-  console.log("playersProjectedMNFPoints", playersProjectedMNFPoints);
   return (
     <>
       <h2>Tiebreaker</h2>

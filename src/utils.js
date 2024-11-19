@@ -1,4 +1,4 @@
-import { RICK_TO_ESPN } from "./constants";
+import { RICK_TO_ESPN, PLAYERS } from "./constants";
 
 export const getEvent = (events, espn_home, espn_away) =>
   events.filter(
@@ -22,11 +22,19 @@ export const formatInProgressGameClock = (event) =>
 
 export const getEventStatus = (event) => event["status"]["type"]["description"];
 
-export const getAwayScore = (event) =>
-  event["competitions"][0]["competitors"][1]["score"];
-// TODO are they always in this order?
-export const getHomeScore = (event) =>
-  event["competitions"][0]["competitors"][0]["score"];
+export const getAwayTeam = (event) =>
+  event["competitions"][0]["competitors"].find(
+    (team) => team.homeAway === "away"
+  );
+
+export const getHomeTeam = (event) =>
+  event["competitions"][0]["competitors"].find(
+    (team) => team.homeAway === "home"
+  );
+
+export const getAwayScore = (event) => Number(getAwayTeam(event)["score"]);
+
+export const getHomeScore = (event) => Number(getHomeTeam(event)["score"]);
 
 export const checkScore = (game, scores) => {
   const espn_home = convertRickToESPN(game.home);
@@ -40,4 +48,49 @@ export const checkScore = (game, scores) => {
     home_score: getHomeScore(event),
   };
   return result;
+};
+
+export const formatTwoScores = (away_score, home_score) =>
+  away_score + " - " + home_score;
+
+export const didAwayTeamWin = (score) =>
+  score["status"] === "Final" && score["away_score"] > score["home_score"];
+
+export const didHomeTeamWin = (score) =>
+  score["home_score"] > score["away_score"];
+
+export const getPlayerPick = (player, picks) =>
+  picks.filter((pick) => pick.player === player)[0].pick;
+
+export const didPlayerMakeCorrectPick = (score, pick, game) =>
+  (didAwayTeamWin(score) && pick === game.away) ||
+  (didHomeTeamWin(score) && pick === game.home);
+
+export const calculatePlayerTotalScore = (player, games, scores) => {
+  let playerScore = 0;
+  for (const game of games) {
+    const score = checkScore(game, scores);
+    const pick = getPlayerPick(player, game.picks);
+    if (didPlayerMakeCorrectPick(score, pick, game)) {
+      playerScore++;
+    }
+  }
+  return playerScore;
+};
+
+export const calculateAllPlayersScores = (games, scores) => {
+  const allPlayersScores = {};
+  for (const player of PLAYERS) {
+    const playerScore = calculatePlayerTotalScore(player, games, scores);
+    allPlayersScores[player] = playerScore;
+  }
+  const sortedScores = [];
+  for (var player in allPlayersScores) {
+    sortedScores.push([player, allPlayersScores[player]]);
+  }
+
+  sortedScores.sort(function (a, b) {
+    return b[1] - a[1];
+  });
+  return sortedScores;
 };
