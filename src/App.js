@@ -31,7 +31,10 @@ function App() {
         <>
           <h2>{weekNum > 0 && "Week " + weekNum}</h2>
           <ScoreFetcher weekNumber={weekNum}>
-            <Leaderboard games={games} />
+            <Leaderboard
+              games={games}
+              playersProjectedMNFPoints={projectedMNFPoints}
+            />
           </ScoreFetcher>
           <Tiebreaker playersProjectedMNFPoints={projectedMNFPoints} />
           <ScoreFetcher weekNumber={weekNum}>

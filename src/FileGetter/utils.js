@@ -13,8 +13,6 @@ const getPicks = (game, weekNum) => {
 };
 
 export const parseFile = (data, weekNum) => {
-  console.log("weekNum", weekNum);
-
   const games = [];
   for (var i = 0; i < data.length - 1; i += 2) {
     const game = {};

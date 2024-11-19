@@ -2,13 +2,29 @@ import React from "react";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 
-import { calculateAllPlayersScores, areAllGamesFinished } from "../utils.js";
+import {
+  calculateAllPlayersScores,
+  areAllGamesFinished,
+  getWinners,
+  getTiebreakWinners,
+  getMNFGame,
+} from "../utils.js";
 
-function Leaderboard({ games, scores }) {
-  console.log("scores", scores);
+function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
   const allPlayersScores = calculateAllPlayersScores(games, scores);
 
-  const highScore = allPlayersScores[0][1];
+  const potentialWinners = areAllGamesFinished(scores)
+    ? getWinners(allPlayersScores)
+    : [];
+
+  const winners =
+    potentialWinners.length > 0
+      ? getTiebreakWinners(
+          getMNFGame(scores),
+          potentialWinners,
+          playersProjectedMNFPoints
+        )
+      : potentialWinners;
 
   const { width, height } = useWindowSize();
 
@@ -43,7 +59,7 @@ function Leaderboard({ games, scores }) {
             {allPlayersScores.map((score) => (
               <tr>
                 <td>
-                  {score[1] === highScore && areAllGamesFinished(scores)
+                  {winners.includes(score[0]) && areAllGamesFinished(scores)
                     ? "🏆"
                     : ""}
                 </td>
