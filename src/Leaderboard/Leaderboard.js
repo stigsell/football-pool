@@ -1,8 +1,9 @@
 import React from "react";
 
-import { calculateAllPlayersScores } from "../utils.js";
+import { calculateAllPlayersScores, areAllGamesFinished } from "../utils.js";
 
 function Leaderboard({ games, scores }) {
+  console.log("scores", scores);
   const allPlayersScores = calculateAllPlayersScores(games, scores);
 
   const highScore = allPlayersScores[0][1];
@@ -28,7 +29,11 @@ function Leaderboard({ games, scores }) {
           <tbody>
             {allPlayersScores.map((score) => (
               <tr>
-                <td>{score[1] === highScore ? "🏆" : ""}</td>
+                <td>
+                  {score[1] === highScore && areAllGamesFinished(scores)
+                    ? "🏆"
+                    : ""}
+                </td>
                 <td>{score[0]}</td>
                 <td>{score[1]}</td>
               </tr>

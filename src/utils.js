@@ -94,3 +94,6 @@ export const calculateAllPlayersScores = (games, scores) => {
   });
   return sortedScores;
 };
+
+export const areAllGamesFinished = (scores) =>
+  scores.events.every((game) => game.status.type.completed);
