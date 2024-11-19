@@ -11,13 +11,11 @@ function ScoreFetcher({ children, weekNumber }) {
         return res.json();
       })
       .then((data) => {
-        console.log(data);
+        console.log("data", data);
         setScores(data);
       });
   }, [weekNumber]);
-
-  if (scores.length === 0) return <p>{"No Scores"}</p>;
-
+  if (scores.length === 0) return null;
   return (
     <>
       {React.Children.map(children, (child) => {
