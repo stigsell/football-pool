@@ -1,4 +1,6 @@
 import React from "react";
+import useWindowSize from "react-use/lib/useWindowSize";
+import Confetti from "react-confetti";
 
 import { calculateAllPlayersScores, areAllGamesFinished } from "../utils.js";
 
@@ -8,9 +10,20 @@ function Leaderboard({ games, scores }) {
 
   const highScore = allPlayersScores[0][1];
 
+  const { width, height } = useWindowSize();
+
   return (
     <>
       <h2>Leaderboard</h2>
+      {areAllGamesFinished(scores) && (
+        <Confetti
+          width={width}
+          height={height}
+          numberOfPieces={400}
+          recycle={false}
+        />
+      )}
+
       <div className="Leaderboard">
         <table className="Leaderboard__table">
           <thead>
