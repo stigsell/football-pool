@@ -4,7 +4,6 @@ import Confetti from "react-confetti";
 
 import {
   calculateAllPlayersScores,
-  areAllGamesFinished,
   getWinners,
   getTiebreakWinners,
   getMNFGame,
@@ -32,7 +31,7 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
   return (
     <>
       <h2>Leaderboard</h2>
-      {areAllGamesFinished(scores) && (
+      {areAllNonUnanimousGamesFinished(scores, games) && (
         <Confetti
           width={width}
           height={height}
@@ -60,7 +59,8 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
             {allPlayersScores.map((score) => (
               <tr>
                 <td>
-                  {winners.includes(score[0]) && areAllGamesFinished(scores)
+                  {winners.includes(score[0]) &&
+                  areAllNonUnanimousGamesFinished(scores, games)
                     ? "🏆"
                     : ""}
                 </td>
