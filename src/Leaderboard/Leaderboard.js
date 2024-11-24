@@ -8,12 +8,13 @@ import {
   getWinners,
   getTiebreakWinners,
   getMNFGame,
+  areAllNonUnanimousGamesFinished,
 } from "../utils.js";
 
 function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
   const allPlayersScores = calculateAllPlayersScores(games, scores);
 
-  const potentialWinners = areAllGamesFinished(scores)
+  const potentialWinners = areAllNonUnanimousGamesFinished(scores, games)
     ? getWinners(allPlayersScores)
     : [];
 

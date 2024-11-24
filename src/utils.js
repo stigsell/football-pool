@@ -1,4 +1,4 @@
-import { RICK_TO_ESPN, PLAYERS } from "./constants";
+import { RICK_TO_ESPN, ESPN_TO_RICK, PLAYERS } from "./constants";
 
 export const getEvent = (events, espn_home, espn_away) =>
   events.filter(
@@ -7,10 +7,35 @@ export const getEvent = (events, espn_home, espn_away) =>
       event.shortName === espn_away + " VS " + espn_home
   )[0];
 
+export const getEventTeams = (event) => ({
+  away: event.shortName.split(" ")[0],
+  home: event.shortName.split(" ")[2],
+});
+
 export const convertRickToESPN = (rick) => {
   const match = RICK_TO_ESPN.find(([first]) => first === rick);
 
   return match ? match[1] : null;
+};
+
+export const convertESPNToRick = (espn) => {
+  const match = ESPN_TO_RICK.find(([first]) => first === espn);
+
+  return match ? match[1] : null;
+};
+
+export const getGame = (home, away, scores) => {
+  const espn_home = convertRickToESPN(home);
+  const espn_away = convertRickToESPN(away);
+  return getEvent(scores.events, espn_home, espn_away);
+};
+
+export const getGameFromEvent = (event, games) => {
+  const rick_away = convertESPNToRick(getEventTeams(event).away);
+  const rick_home = convertESPNToRick(getEventTeams(event).home);
+  return games.find(
+    (game) => game.away === rick_away && game.home === rick_home
+  );
 };
 
 export const isGameInProgress = (event) =>
@@ -37,9 +62,8 @@ export const getAwayScore = (event) => Number(getAwayTeam(event)["score"]);
 export const getHomeScore = (event) => Number(getHomeTeam(event)["score"]);
 
 export const checkScore = (game, scores) => {
-  const espn_home = convertRickToESPN(game.home);
-  const espn_away = convertRickToESPN(game.away);
-  const event = getEvent(scores.events, espn_home, espn_away);
+  const event = getGame(game.home, game.away, scores);
+
   const result = {
     status: isGameInProgress(event)
       ? formatInProgressGameClock(event)
@@ -97,6 +121,25 @@ export const calculateAllPlayersScores = (games, scores) => {
 
 export const areAllGamesFinished = (scores) =>
   scores.events.every((game) => game.status.type.completed);
+
+export const isGameUnanimous = (picks) =>
+  picks.every((pick) => pick.pick === picks[0]["pick"]);
+
+export const areAllNonUnanimousGamesFinished = (scores, games) => {
+  const nonUnanimousEvents = scores.events.filter((event) => {
+    return !isGameUnanimous(
+      getGameFromEvent(
+        getGame(
+          convertESPNToRick(getEventTeams(event).home),
+          convertESPNToRick(getEventTeams(event).away),
+          scores
+        ),
+        games
+      ).picks
+    );
+  });
+  return nonUnanimousEvents.every((game) => game.status.type.completed);
+};
 
 export const getWinners = (allPlayersScores) => {
   const highScore = allPlayersScores[0][1];

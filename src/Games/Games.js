@@ -13,6 +13,7 @@ function Games({ games, scores }) {
       <h2>Games</h2>
       {games.map((game) => {
         const score = checkScore(game, scores);
+
         return (
           <div className="Game" key={game.home + game.away}>
             <table className="Game__table">
