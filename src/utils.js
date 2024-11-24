@@ -57,7 +57,7 @@ export const didAwayTeamWin = (score) =>
   score["status"] === "Final" && score["away_score"] > score["home_score"];
 
 export const didHomeTeamWin = (score) =>
-  score["home_score"] > score["away_score"];
+  score["status"] === "Final" && score["home_score"] > score["away_score"];
 
 export const getPlayerPick = (player, picks) =>
   picks.filter((pick) => pick.player === player)[0].pick;
