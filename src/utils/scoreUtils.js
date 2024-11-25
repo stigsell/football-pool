@@ -1,4 +1,4 @@
-import { PLAYERS } from "../constants";
+import { PLAYERS } from "./constants";
 import {
   getAwayTeam,
   getHomeTeam,

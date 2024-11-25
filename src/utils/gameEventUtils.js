@@ -1,4 +1,4 @@
-import { RICK_TO_ESPN, ESPN_TO_RICK } from "../constants";
+import { RICK_TO_ESPN, ESPN_TO_RICK } from "./constants";
 
 const getEvent = (events, espn_home, espn_away) =>
   events.filter(
@@ -74,3 +74,6 @@ export const getGame = (home, away, scores) => {
   const espn_away = convertRickToESPN(away);
   return getEvent(scores.events, espn_home, espn_away);
 };
+
+export const getNumberOfGamesRemaining = (scores) =>
+  scores.events.filter((event) => !event.status.type.completed).length;

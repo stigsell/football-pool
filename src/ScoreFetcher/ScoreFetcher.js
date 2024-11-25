@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ESPN_API_URL } from "../constants";
+import { ESPN_API_URL } from "../utils/constants";
 
 function ScoreFetcher({ children, weekNumber }) {
   const [scores, setScores] = useState([]);

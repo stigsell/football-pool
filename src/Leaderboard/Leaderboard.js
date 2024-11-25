@@ -6,11 +6,20 @@ import {
   getMNFGame,
   areAllNonUnanimousGamesFinished,
 } from "../utils/gameEventUtils.js";
-import { getWinners, getTiebreakWinners } from "../utils/winnerUtils.js";
+import {
+  getWinners,
+  getTiebreakWinners,
+  isPlayerEliminated,
+} from "../utils/winnerUtils.js";
+import { getNumberOfGamesRemaining } from "../utils/gameEventUtils.js";
 import { calculateAllPlayersScores } from "../utils/scoreUtils.js";
 
 function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
   const allPlayersScores = calculateAllPlayersScores(games, scores);
+
+  const highScore = allPlayersScores[0][1];
+
+  getNumberOfGamesRemaining(scores);
 
   const potentialWinners = areAllNonUnanimousGamesFinished(scores, games)
     ? getWinners(allPlayersScores)
@@ -59,9 +68,13 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
               <tr>
                 <td>
                   {winners.includes(score[0]) &&
-                  areAllNonUnanimousGamesFinished(scores, games)
-                    ? "🏆"
-                    : ""}
+                    areAllNonUnanimousGamesFinished(scores, games) &&
+                    "🏆"}
+                  {isPlayerEliminated(
+                    highScore,
+                    score[1],
+                    getNumberOfGamesRemaining(scores)
+                  ) && "❌"}
                 </td>
                 <td>{score[0]}</td>
                 <td>{score[1]}</td>

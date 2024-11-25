@@ -33,3 +33,6 @@ export const getTiebreakWinners = (
   }
   return tiebreakerWinners;
 };
+
+export const isPlayerEliminated = (highScore, playerScore, numGamesRemaining) =>
+  highScore - playerScore > numGamesRemaining;
