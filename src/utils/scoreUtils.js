@@ -8,7 +8,7 @@ import {
 } from "./gameEventUtils";
 import { formatInProgressGameClock } from "./formatUtils";
 
-export const calculatePlayerTotalScore = (player, games, scores) => {
+const calculatePlayerTotalScore = (player, games, scores) => {
   let playerScore = 0;
   for (const game of games) {
     const score = checkScore(game, scores);
@@ -19,6 +19,13 @@ export const calculatePlayerTotalScore = (player, games, scores) => {
   }
   return playerScore;
 };
+
+const getPlayerPick = (player, picks) =>
+  picks.filter((pick) => pick.player === player)[0].pick;
+
+const didPlayerMakeCorrectPick = (score, pick, game) =>
+  (didAwayTeamWin(score) && pick === game.away) ||
+  (didHomeTeamWin(score) && pick === game.home);
 
 export const calculateAllPlayersScores = (games, scores) => {
   const allPlayersScores = {};
@@ -36,13 +43,6 @@ export const calculateAllPlayersScores = (games, scores) => {
   });
   return sortedScores;
 };
-
-export const getPlayerPick = (player, picks) =>
-  picks.filter((pick) => pick.player === player)[0].pick;
-
-export const didPlayerMakeCorrectPick = (score, pick, game) =>
-  (didAwayTeamWin(score) && pick === game.away) ||
-  (didHomeTeamWin(score) && pick === game.home);
 
 export const didAwayTeamWin = (score) =>
   score["status"] === "Final" && score["away_score"] > score["home_score"];

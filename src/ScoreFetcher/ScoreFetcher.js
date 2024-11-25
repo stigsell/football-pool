@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { ESPN_API_URL } from "../constants";
 
 function ScoreFetcher({ children, weekNumber }) {
   const [scores, setScores] = useState([]);
   useEffect(() => {
-    fetch(
-      "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2024&seasontype=2&week=" +
-        weekNumber
-    )
+    fetch(ESPN_API_URL + weekNumber)
       .then((res) => {
         return res.json();
       })
