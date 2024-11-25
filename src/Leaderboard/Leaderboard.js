@@ -35,7 +35,7 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
         <Confetti
           width={width}
           height={height}
-          numberOfPieces={400}
+          numberOfPieces={600}
           recycle={false}
         />
       )}

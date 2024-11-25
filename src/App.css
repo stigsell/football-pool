@@ -31,6 +31,12 @@
     width: 100px;
   }
 }
+.Filter {
+  margin: 30px 5px;
+  label {
+    margin-left: 10px;
+  }
+}
 .Games__zeroState {
   padding: 10px;
 }

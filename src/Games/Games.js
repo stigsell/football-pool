@@ -1,17 +1,52 @@
-import React from "react";
+import React, { useState } from "react";
 
 import {
   checkScore,
   didAwayTeamWin,
   didHomeTeamWin,
   formatTwoScores,
+  getGame,
+  isGameUnanimous,
 } from "../utils";
 
 function Games({ games, scores }) {
+  const [showCompletedGames, setShowCompletedGames] = useState(false);
+  const [showUnanimousGames, setShowUnanimousGames] = useState(false);
+
+  const filteredByCompleted = showCompletedGames
+    ? games
+    : games.filter(
+        (game) => !getGame(game.home, game.away, scores).status.type.completed
+      );
+
+  const filteredByUnanimousAndCompleted = showUnanimousGames
+    ? filteredByCompleted
+    : filteredByCompleted.filter((game) => !isGameUnanimous(game.picks));
+
   return (
     <>
       <h2>Games</h2>
-      {games.map((game) => {
+      <div className="Filter">
+        <input
+          type="checkbox"
+          id="showCompletedGames"
+          name="showCompletedGames"
+          showCompletedGames
+          onChange={() => setShowCompletedGames(!showCompletedGames)}
+        />
+        <label for="showCompletedGames">Show Completed Games</label>
+      </div>
+      <div className="Filter">
+        <input
+          type="checkbox"
+          id="showUnanimousGames"
+          name="showUnanimousGames"
+          showUnanimousGames
+          onChange={() => setShowUnanimousGames(!showUnanimousGames)}
+        />
+        <label for="showUnanimousGames">Show Unanimous Games</label>
+      </div>
+      {filteredByUnanimousAndCompleted.map((game) => {
         const score = checkScore(game, scores);
 
         return (
