@@ -3,12 +3,11 @@ import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 
 import {
-  calculateAllPlayersScores,
-  getWinners,
-  getTiebreakWinners,
   getMNFGame,
   areAllNonUnanimousGamesFinished,
-} from "../utils.js";
+} from "../utils/gameEventUtils.js";
+import { getWinners, getTiebreakWinners } from "../utils/winnerUtils.js";
+import { calculateAllPlayersScores } from "../utils/scoreUtils.js";
 
 function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
   const allPlayersScores = calculateAllPlayersScores(games, scores);

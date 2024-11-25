@@ -28,7 +28,6 @@ function FileGetter({
     <>
       <form>
         <input
-          //   key={file?.name}
           type="file"
           onChange={handleChange}
           disabled={file !== null}
