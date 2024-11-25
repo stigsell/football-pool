@@ -39,7 +39,12 @@ function App() {
           <ScoreFetcher weekNumber={weekNum}>
             <Games games={games} />
           </ScoreFetcher>
-          <Tiebreaker playersProjectedMNFPoints={projectedMNFPoints} />
+          <ScoreFetcher weekNumber={weekNum}>
+            <Tiebreaker
+              playersProjectedMNFPoints={projectedMNFPoints}
+              games={games}
+            />
+          </ScoreFetcher>
         </>
       )}
     </div>
