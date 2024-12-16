@@ -67,6 +67,10 @@ export const areAllNonUnanimousGamesFinished = (scores, games) => {
   return nonUnanimousEvents.every((game) => game.status.type.completed);
 };
 
+export const areAllGamesFinished = (scores, games) => {
+  return scores.events.every((game) => game.status.type.completed);
+};
+
 export const getMNFGame = (scores) => scores.events.slice(-1)[0];
 
 export const getGame = (home, away, scores) => {

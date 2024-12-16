@@ -1,7 +1,7 @@
 import React from "react";
 import { PLAYERS } from "../utils/constants";
 
-function Tiebreaker({ playersProjectedMNFPoints, games, scores }) {
+function Tiebreaker({ playersProjectedMNFPoints }) {
   return (
     <>
       <h2>Tiebreaker</h2>

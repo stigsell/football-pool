@@ -4,7 +4,8 @@ import Confetti from "react-confetti";
 
 import {
   getMNFGame,
-  areAllNonUnanimousGamesFinished,
+  // areAllNonUnanimousGamesFinished,
+  areAllGamesFinished,
 } from "../utils/gameEventUtils.js";
 import {
   getWinners,
@@ -21,7 +22,7 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
 
   getNumberOfGamesRemaining(scores);
 
-  const potentialWinners = areAllNonUnanimousGamesFinished(scores, games)
+  const potentialWinners = areAllGamesFinished(scores, games)
     ? getWinners(allPlayersScores)
     : [];
 
@@ -39,7 +40,7 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
   return (
     <>
       <h2>Leaderboard</h2>
-      {areAllNonUnanimousGamesFinished(scores, games) && (
+      {areAllGamesFinished(scores, games) && (
         <Confetti
           width={width}
           height={height}
@@ -68,7 +69,7 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
               <tr>
                 <td>
                   {winners.includes(score[0]) &&
-                    areAllNonUnanimousGamesFinished(scores, games) &&
+                    areAllGamesFinished(scores, games) &&
                     "🏆"}
                   {isPlayerEliminated(
                     highScore,
