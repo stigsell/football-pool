@@ -8,7 +8,8 @@ A React web application that uses the ESPN Scoreboard API to keep track of the S
 2. Upload the spreadsheet Rick sends each week (see example directory for an example). The spreadsheet must have the week number in the file name (ex: Week 15.XLS)
 3. The app will tally up the number of correct wins per person, and if all games are complete, confetti will fall and the winner(s) will be shown with a tropy next to their name.
 
-![](example/demo.mp4)
+![ezgif-6-7df08a9e1e](https://github.com/user-attachments/assets/f8b275ed-bc8f-4d63-87e0-3dcce5adb3a7)
+
 
 ## Dev Info
 
