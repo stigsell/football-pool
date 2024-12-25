@@ -6,7 +6,7 @@ const getPicks = (game, weekNum) => {
   // delete game[getKey(weekNum)];  // TODO fix this
   const picks = [];
   for (const key in game) {
-    picks.push({ player: key, pick: game[key] });
+    picks.push({ player: key, pick: game[key].toUpperCase().trim() });
   }
   picks.shift(); // shift() to remove first element of array because it is a parsing error "WK ##"
   return picks;
