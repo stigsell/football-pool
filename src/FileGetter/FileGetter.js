@@ -1,5 +1,6 @@
-import React from "react";
-import { readFile, parseFile } from "./utils";
+import { useEffect } from "react";
+import { parseFile } from "./utils";
+import * as XLSX from "xlsx";
 
 function FileGetter({
   file,
@@ -8,35 +9,26 @@ function FileGetter({
   setWeekNum,
   setProjectedMNFPoints,
 }) {
-  async function handleChange(event) {
-    setFile(null);
-    const file = event.target.files[0];
-    setFile(file);
-    console.log(file);
-    const weekNum = Number(file.name.replace(/[^0-9]/g, ""));
-    setWeekNum(weekNum);
-    const json_file = await readFile(file);
-    console.log("json_file", json_file);
-    const games = parseFile(json_file, weekNum);
-    setGames(games);
-    console.log("games", games);
-    setProjectedMNFPoints(json_file.slice(-1)[0]);
-  }
-  const clearFile = () => setFile(null);
+  useEffect(() => {
+    async function fetchAndParseExcel() {
+      const response = await fetch("/spreadsheets/Week 1;.xlsx");
+      const arrayBuffer = await response.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const json_file = XLSX.utils.sheet_to_json(worksheet);
 
-  return (
-    <>
-      <form>
-        <input
-          type="file"
-          onChange={handleChange}
-          disabled={file !== null}
-          className="FileGetter__input"
-        />
-      </form>
-      <button onClick={clearFile}>Clear file</button>
-    </>
-  );
+      const weekNum = 1;
+      setWeekNum(weekNum);
+      setFile("Week 1;.xlsx");
+      const games = parseFile(json_file, weekNum);
+      setGames(games);
+      setProjectedMNFPoints(json_file.slice(-1)[0]);
+    }
+    fetchAndParseExcel();
+  }, [setFile, setGames, setWeekNum, setProjectedMNFPoints]);
+
+  return null;
 }
 
 export default FileGetter;
