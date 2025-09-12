@@ -5,6 +5,7 @@ import ScoreFetcher from "./ScoreFetcher/ScoreFetcher";
 import Leaderboard from "./Leaderboard/Leaderboard";
 import Tiebreaker from "./Tiebreaker/Tiebreaker";
 import Games from "./Games/Games";
+import SeasonResults from "./SeasonResults/SeasonResults";
 
 import "./App.css";
 
@@ -45,6 +46,7 @@ function App() {
               games={games}
             />
           </ScoreFetcher>
+          <SeasonResults />
         </>
       )}
     </div>
