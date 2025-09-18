@@ -11,14 +11,14 @@ function FileGetter({
 }) {
   useEffect(() => {
     async function fetchAndParseExcel() {
-      const response = await fetch("/spreadsheets/Week 2;.xlsx");
+      const weekNum = 3;
+      const response = await fetch("/spreadsheets/Week " + weekNum + ";.xlsx");
       const arrayBuffer = await response.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: "array" });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const json_file = XLSX.utils.sheet_to_json(worksheet);
 
-      const weekNum = 2;
       setWeekNum(weekNum);
       setFile("Week 2;.xlsx");
       const games = parseFile(json_file, weekNum);
