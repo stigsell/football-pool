@@ -20,7 +20,7 @@ function FileGetter({
       const json_file = XLSX.utils.sheet_to_json(worksheet);
 
       setWeekNum(weekNum);
-      setFile("Week 2;.xlsx");
+      setFile("Week " + weekNum + ";.xlsx");
       const games = parseFile(json_file, weekNum);
       setGames(games);
       setProjectedMNFPoints(json_file.slice(-1)[0]);
