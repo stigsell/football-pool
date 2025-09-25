@@ -1,0 +1,35 @@
+/* Styles for PickSubmission component */
+.PickSubmission .week-games {
+  width: 200px;
+}
+
+.PickSubmission .game {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* left radio stays left, right radio aligns right */
+  gap: 12px;
+}
+
+.PickSubmission .game .left-label,
+.PickSubmission .game .right-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.PickSubmission .game .left-label {
+  /* left side: keep content left-aligned */
+  justify-content: flex-start;
+}
+
+.PickSubmission .game .right-label {
+  /* right side: push to the far right */
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.PickSubmission .tiebreaker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
