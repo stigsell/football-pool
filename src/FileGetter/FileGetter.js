@@ -11,7 +11,7 @@ function FileGetter({
 }) {
   useEffect(() => {
     async function fetchAndParseExcel() {
-      const weekNum = 8;
+      const weekNum = 9;
       const response = await fetch("/spreadsheets/Week " + weekNum + ";.xlsx");
       const arrayBuffer = await response.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: "array" });
