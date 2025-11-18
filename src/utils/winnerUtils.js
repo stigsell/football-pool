@@ -14,12 +14,21 @@ export const getTiebreakWinners = (
 ) => {
   const totalPoints = getAwayScore(mnfGame) + getHomeScore(mnfGame);
 
+  console.log("mnfGame", mnfGame);
+
+  console.log("totalPoints", totalPoints);
+
   const distanceFromEstimatedToActualPerPlayer = {};
   for (const winner of winners) {
     const distance = Math.abs(playersProjectedMNFPoints[winner] - totalPoints);
 
     distanceFromEstimatedToActualPerPlayer[winner] = distance;
   }
+
+  console.log(
+    "distanceFromEstimatedToActualPerPlayer",
+    distanceFromEstimatedToActualPerPlayer
+  );
 
   const smallestDistance = Math.min(
     ...Object.values(distanceFromEstimatedToActualPerPlayer)

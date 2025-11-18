@@ -71,7 +71,10 @@ export const areAllGamesFinished = (scores, games) => {
   return scores.events.every((game) => game.status.type.completed);
 };
 
-export const getMNFGame = (scores) => scores.events.slice(-1)[0];
+export const getMNFGame = (scores) =>
+  [...scores.events]
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(-1)[0];
 
 export const getGame = (home, away, scores) => {
   const espn_home = convertRickToESPN(home);
