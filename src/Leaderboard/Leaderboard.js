@@ -22,8 +22,6 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
     ? getWinners(allPlayersScores)
     : [];
 
-  console.log("scores.events", scores.events);
-
   const winners =
     potentialWinners.length > 0
       ? getTiebreakWinners(
@@ -32,15 +30,6 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
           playersProjectedMNFPoints
         )
       : potentialWinners;
-
-  console.log(
-    "getTiebreakWinners",
-    getTiebreakWinners(
-      getMNFGame(scores),
-      potentialWinners,
-      playersProjectedMNFPoints
-    )
-  );
 
   const { width, height } = useWindowSize();
 

@@ -4,6 +4,7 @@ const getKey = (weekNum) => "WK " + weekNum;
 
 const getPicks = (game, weekNum) => {
   // delete game[getKey(weekNum)];  // TODO fix this
+  console.log(game);
   const picks = [];
   for (const key in game) {
     picks.push({ player: key, pick: game[key].toUpperCase().trim() });
