@@ -80,6 +80,10 @@ function SeasonResults() {
               <td>16</td>
               <td>Tammy</td>
             </tr>
+            <tr>
+              <td>17</td>
+              <td>Rick</td>
+            </tr>
           </tbody>
         </table>
       </div>
