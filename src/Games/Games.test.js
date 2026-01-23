@@ -75,12 +75,11 @@ describe("Games", () => {
   });
 
   it("hides completed games by default", () => {
-    render(<Games games={mockGames} scores={mockScores} />);
-    // KC game is completed, should not show by default
-    // But if it's also non-unanimous (which it is), it would show
-    // Only incomplete non-unanimous games show by default
-    // MIA @ NE is in progress and unanimous, so hidden
-    // BUF @ KC is completed but non-unanimous, so hidden
+    const { container } = render(<Games games={mockGames} scores={mockScores} />);
+    // KC game is completed and non-unanimous, but hidden because completed
+    // MIA @ NE is in progress but unanimous, so also hidden
+    // With both filters off by default, no games should show
+    expect(container.querySelectorAll(".Game").length).toBe(0);
   });
 
   it("shows completed games when checkbox is checked", () => {
@@ -96,9 +95,10 @@ describe("Games", () => {
   });
 
   it("hides unanimous games by default", () => {
-    render(<Games games={mockGames} scores={mockScores} />);
-    // MIA @ NE is unanimous (all picked MIA)
-    // Should be hidden by default
+    const { container } = render(<Games games={mockGames} scores={mockScores} />);
+    // MIA @ NE is unanimous (all picked MIA) - hidden by default
+    // Both filters are off, so no games should display
+    expect(container.querySelectorAll(".Game").length).toBe(0);
   });
 
   it("shows unanimous games when checkbox is checked", () => {
