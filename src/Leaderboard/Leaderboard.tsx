@@ -1,31 +1,37 @@
-import React from "react";
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 
-import { getMNFGame, areAllGamesFinished } from "../utils/gameEventUtils.js";
+import { getMNFGame, areAllGamesFinished } from "../utils/gameEventUtils";
 import {
   getWinners,
   getTiebreakWinners,
   isPlayerEliminated,
-} from "../utils/winnerUtils.js";
-import { getNumberOfGamesRemaining } from "../utils/gameEventUtils.js";
-import { calculateAllPlayersScores } from "../utils/scoreUtils.js";
+} from "../utils/winnerUtils";
+import { getNumberOfGamesRemaining } from "../utils/gameEventUtils";
+import { calculateAllPlayersScores } from "../utils/scoreUtils";
+import { Game, ESPNScoresResponse, PlayersProjectedMNFPoints } from "../types";
 
-function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
-  const allPlayersScores = calculateAllPlayersScores(games, scores);
+interface LeaderboardProps {
+  games: Game[];
+  scores?: ESPNScoresResponse;
+  playersProjectedMNFPoints: PlayersProjectedMNFPoints;
+}
+
+function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardProps) {
+  const allPlayersScores = calculateAllPlayersScores(games, scores!);
 
   const highScore = allPlayersScores[0][1];
 
-  getNumberOfGamesRemaining(scores);
+  getNumberOfGamesRemaining(scores!);
 
-  const potentialWinners = areAllGamesFinished(scores, games)
+  const potentialWinners = areAllGamesFinished(scores!, games)
     ? getWinners(allPlayersScores)
     : [];
 
   const winners =
     potentialWinners.length > 0
       ? getTiebreakWinners(
-          getMNFGame(scores),
+          getMNFGame(scores!),
           potentialWinners,
           playersProjectedMNFPoints
         )
@@ -36,7 +42,7 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
   return (
     <>
       <h2>Leaderboard</h2>
-      {areAllGamesFinished(scores, games) && (
+      {areAllGamesFinished(scores!, games) && (
         <Confetti
           width={width}
           height={height}
@@ -62,15 +68,15 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }) {
           </thead>
           <tbody>
             {allPlayersScores.map((score) => (
-              <tr>
+              <tr key={score[0]}>
                 <td>
                   {winners.includes(score[0]) &&
-                    areAllGamesFinished(scores, games) &&
+                    areAllGamesFinished(scores!, games) &&
                     "🏆"}
                   {isPlayerEliminated(
                     highScore,
                     score[1],
-                    getNumberOfGamesRemaining(scores)
+                    getNumberOfGamesRemaining(scores!)
                   ) && "❌"}
                 </td>
                 <td>{score[0]}</td>

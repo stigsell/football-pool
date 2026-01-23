@@ -1,5 +1,7 @@
+import { ESPNEvent, ESPNScoresResponse, Game, PlayerScoreTuple, PlayersProjectedMNFPoints } from "../types";
+
 // Mock ESPN API event structure
-export const mockEvent = {
+export const mockEvent: ESPNEvent = {
   shortName: "BUF @ KC",
   date: "2025-01-20T00:15Z",
   status: {
@@ -17,7 +19,7 @@ export const mockEvent = {
   ],
 };
 
-export const mockEventInProgress = {
+export const mockEventInProgress: ESPNEvent = {
   shortName: "BUF @ KC",
   date: "2025-01-20T00:15Z",
   status: {
@@ -35,7 +37,7 @@ export const mockEventInProgress = {
   ],
 };
 
-export const mockEventEndOfPeriod = {
+export const mockEventEndOfPeriod: ESPNEvent = {
   shortName: "MIA @ NE",
   date: "2025-01-19T18:00Z",
   status: {
@@ -53,7 +55,7 @@ export const mockEventEndOfPeriod = {
   ],
 };
 
-export const mockEventScheduled = {
+export const mockEventScheduled: ESPNEvent = {
   shortName: "DEN @ LV",
   date: "2025-01-21T01:20Z",
   status: {
@@ -72,7 +74,7 @@ export const mockEventScheduled = {
 };
 
 // Mock scores response (ESPN API format)
-export const mockScoresResponse = {
+export const mockScoresResponse: ESPNScoresResponse = {
   events: [
     {
       shortName: "BUF @ KC",
@@ -128,7 +130,7 @@ export const mockScoresResponse = {
   ],
 };
 
-export const mockScoresResponseWithIncomplete = {
+export const mockScoresResponseWithIncomplete: ESPNScoresResponse = {
   events: [
     {
       shortName: "BUF @ KC",
@@ -185,7 +187,7 @@ export const mockScoresResponseWithIncomplete = {
 };
 
 // Mock games array (parsed from Excel)
-export const mockGames = [
+export const mockGames: Game[] = [
   {
     home: "KC",
     away: "BUF",
@@ -240,7 +242,7 @@ export const mockGames = [
 ];
 
 // Mock games with unanimous picks
-export const mockGamesUnanimous = [
+export const mockGamesUnanimous: Game[] = [
   {
     home: "NE",
     away: "MIA",
@@ -253,7 +255,7 @@ export const mockGamesUnanimous = [
 ];
 
 // Mock games with mixed picks
-export const mockGamesMixed = [
+export const mockGamesMixed: Game[] = [
   {
     home: "KC",
     away: "BUF",
@@ -266,7 +268,7 @@ export const mockGamesMixed = [
 ];
 
 // Mock player scores array (sorted high to low)
-export const mockPlayersScores = [
+export const mockPlayersScores: PlayerScoreTuple[] = [
   ["Nick", 10],
   ["Adam", 9],
   ["Alex", 9],
@@ -281,7 +283,7 @@ export const mockPlayersScores = [
 ];
 
 // Mock player scores with tie at top
-export const mockPlayersScoresTied = [
+export const mockPlayersScoresTied: PlayerScoreTuple[] = [
   ["Nick", 10],
   ["Adam", 10],
   ["Alex", 10],
@@ -289,14 +291,14 @@ export const mockPlayersScoresTied = [
 ];
 
 // Mock player scores with single winner
-export const mockPlayersScoresSingleWinner = [
+export const mockPlayersScoresSingleWinner: PlayerScoreTuple[] = [
   ["Nick", 12],
   ["Adam", 10],
   ["Alex", 9],
 ];
 
 // Mock MNF projected points per player
-export const mockPlayersProjectedMNFPoints = {
+export const mockPlayersProjectedMNFPoints: PlayersProjectedMNFPoints = {
   Nick: 45,
   Adam: 50,
   Alex: 42,

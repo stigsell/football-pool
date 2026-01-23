@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { getGame, isGameUnanimous } from "../utils/gameEventUtils";
 import {
@@ -8,15 +8,21 @@ import {
 } from "../utils/scoreUtils";
 
 import { formatTwoScores } from "../utils/formatUtils";
+import { Game, ESPNScoresResponse } from "../types";
 
-function Games({ games, scores }) {
+interface GamesProps {
+  games: Game[];
+  scores?: ESPNScoresResponse;
+}
+
+function Games({ games, scores }: GamesProps) {
   const [showCompletedGames, setShowCompletedGames] = useState(false);
   const [showUnanimousGames, setShowUnanimousGames] = useState(false);
 
   const filteredByCompleted = showCompletedGames
     ? games
     : games.filter(
-        (game) => !getGame(game.home, game.away, scores).status.type.completed
+        (game) => !getGame(game.home, game.away, scores!)!.status.type.completed
       );
 
   const filteredByUnanimousAndCompleted = showUnanimousGames
@@ -31,7 +37,6 @@ function Games({ games, scores }) {
           type="checkbox"
           id="showCompletedGames"
           name="showCompletedGames"
-          showCompletedGames
           onChange={() => setShowCompletedGames(!showCompletedGames)}
         />
         <label htmlFor="showCompletedGames">Show Completed Games</label>
@@ -41,13 +46,12 @@ function Games({ games, scores }) {
           type="checkbox"
           id="showUnanimousGames"
           name="showUnanimousGames"
-          showUnanimousGames
           onChange={() => setShowUnanimousGames(!showUnanimousGames)}
         />
         <label htmlFor="showUnanimousGames">Show Unanimous Games</label>
       </div>
       {filteredByUnanimousAndCompleted.map((game) => {
-        const score = checkScore(game, scores);
+        const score = checkScore(game, scores!);
 
         return (
           <div className="Game" key={game.home + game.away}>
@@ -58,7 +62,7 @@ function Games({ games, scores }) {
                     <b>{game.away}</b>
                   </td>
                   <td>
-                    <b>{checkScore(game, scores)["status"]}</b>
+                    <b>{checkScore(game, scores!)["status"]}</b>
                   </td>
                   <td>
                     <b>{game.home}</b>

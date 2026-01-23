@@ -1,7 +1,11 @@
-import React from "react";
 import { PLAYERS } from "../utils/constants";
+import { PlayersProjectedMNFPoints } from "../types";
 
-function Tiebreaker({ playersProjectedMNFPoints }) {
+interface TiebreakerProps {
+  playersProjectedMNFPoints: PlayersProjectedMNFPoints;
+}
+
+function Tiebreaker({ playersProjectedMNFPoints }: TiebreakerProps) {
   return (
     <>
       <h2>Tiebreaker</h2>
@@ -20,7 +24,7 @@ function Tiebreaker({ playersProjectedMNFPoints }) {
           <tbody>
             {PLAYERS.map((player) => {
               return (
-                <tr>
+                <tr key={player}>
                   <td>{player}</td>
                   <td>{playersProjectedMNFPoints[player]}</td>
                 </tr>

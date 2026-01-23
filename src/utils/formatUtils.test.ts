@@ -1,4 +1,5 @@
 import { formatInProgressGameClock, formatTwoScores } from "./formatUtils";
+import { ESPNEvent } from "../types";
 
 describe("formatInProgressGameClock", () => {
   it("formats Q1 with time remaining", () => {
@@ -7,7 +8,7 @@ describe("formatInProgressGameClock", () => {
         period: 1,
         displayClock: "12:34",
       },
-    };
+    } as ESPNEvent;
     expect(formatInProgressGameClock(event)).toBe("Q1 12:34");
   });
 
@@ -17,7 +18,7 @@ describe("formatInProgressGameClock", () => {
         period: 4,
         displayClock: "0:05",
       },
-    };
+    } as ESPNEvent;
     expect(formatInProgressGameClock(event)).toBe("Q4 0:05");
   });
 
@@ -27,7 +28,7 @@ describe("formatInProgressGameClock", () => {
         period: 2,
         displayClock: "0:00",
       },
-    };
+    } as ESPNEvent;
     expect(formatInProgressGameClock(event)).toBe("Q2 0:00");
   });
 
@@ -37,7 +38,7 @@ describe("formatInProgressGameClock", () => {
         period: 3,
         displayClock: "8:45",
       },
-    };
+    } as ESPNEvent;
     expect(formatInProgressGameClock(event)).toBe("Q3 8:45");
   });
 
@@ -47,7 +48,7 @@ describe("formatInProgressGameClock", () => {
         period: 5,
         displayClock: "10:00",
       },
-    };
+    } as ESPNEvent;
     expect(formatInProgressGameClock(event)).toBe("Q5 10:00");
   });
 });

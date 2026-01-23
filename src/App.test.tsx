@@ -21,6 +21,8 @@ jest.mock("react-use/lib/useWindowSize", () => {
   return () => ({ width: 1024, height: 768 });
 });
 
+const mockedXLSX = XLSX as jest.Mocked<typeof XLSX>;
+
 // Suppress console.log from source code
 const originalConsoleLog = console.log;
 beforeAll(() => {
@@ -130,7 +132,7 @@ describe("App", () => {
     jest.clearAllMocks();
 
     // Mock fetch for both Excel file and ESPN API
-    global.fetch = jest.fn((url) => {
+    global.fetch = jest.fn((url: string) => {
       if (url.includes("spreadsheets")) {
         return Promise.resolve({
           arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
@@ -140,10 +142,10 @@ describe("App", () => {
       return Promise.resolve({
         json: () => Promise.resolve(mockScoresResponse),
       });
-    });
+    }) as jest.Mock;
 
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockExcelData);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockExcelData);
   });
 
   it("renders the header", () => {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import FileGetter from "./FileGetter/FileGetter";
 import ScoreFetcher from "./ScoreFetcher/ScoreFetcher";
@@ -8,12 +8,13 @@ import Games from "./Games/Games";
 import SeasonResults from "./SeasonResults/SeasonResults";
 
 import "./App.css";
+import { Game, PlayersProjectedMNFPoints } from "./types";
 
 function App() {
-  const [inputFile, setInputFile] = useState(null);
-  const [weekNum, setWeekNum] = useState(0);
-  const [games, setGames] = useState([]);
-  const [projectedMNFPoints, setProjectedMNFPoints] = useState({});
+  const [inputFile, setInputFile] = useState<string | null>(null);
+  const [weekNum, setWeekNum] = useState<number>(0);
+  const [games, setGames] = useState<Game[]>([]);
+  const [projectedMNFPoints, setProjectedMNFPoints] = useState<PlayersProjectedMNFPoints>({});
 
   return (
     <div className="App">
@@ -43,7 +44,6 @@ function App() {
           <ScoreFetcher weekNumber={weekNum}>
             <Tiebreaker
               playersProjectedMNFPoints={projectedMNFPoints}
-              games={games}
             />
           </ScoreFetcher>
           <SeasonResults />

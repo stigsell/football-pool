@@ -1,6 +1,7 @@
 import { getAwayScore, getHomeScore } from "./scoreUtils";
+import { ESPNEvent, PlayerScoreTuple, PlayersProjectedMNFPoints } from "../types";
 
-export const getWinners = (allPlayersScores) => {
+export const getWinners = (allPlayersScores: PlayerScoreTuple[]): string[] => {
   const highScore = allPlayersScores[0][1];
   return allPlayersScores
     .filter((player) => player[1] === highScore)
@@ -8,13 +9,13 @@ export const getWinners = (allPlayersScores) => {
 };
 
 export const getTiebreakWinners = (
-  mnfGame,
-  winners,
-  playersProjectedMNFPoints
-) => {
+  mnfGame: ESPNEvent,
+  winners: string[],
+  playersProjectedMNFPoints: PlayersProjectedMNFPoints
+): string[] => {
   const totalPoints = getAwayScore(mnfGame) + getHomeScore(mnfGame);
 
-  const distanceFromEstimatedToActualPerPlayer = {};
+  const distanceFromEstimatedToActualPerPlayer: Record<string, number> = {};
   for (const winner of winners) {
     const distance = Math.abs(playersProjectedMNFPoints[winner] - totalPoints);
 
@@ -25,7 +26,7 @@ export const getTiebreakWinners = (
     ...Object.values(distanceFromEstimatedToActualPerPlayer)
   );
 
-  const tiebreakerWinners = [];
+  const tiebreakerWinners: string[] = [];
   for (const winner of winners) {
     if (distanceFromEstimatedToActualPerPlayer[winner] === smallestDistance) {
       tiebreakerWinners.push(winner);
@@ -34,5 +35,5 @@ export const getTiebreakWinners = (
   return tiebreakerWinners;
 };
 
-export const isPlayerEliminated = (highScore, playerScore, numGamesRemaining) =>
+export const isPlayerEliminated = (highScore: number, playerScore: number, numGamesRemaining: number): boolean =>
   highScore - playerScore > numGamesRemaining;

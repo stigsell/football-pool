@@ -1,9 +1,10 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Tiebreaker from "./Tiebreaker";
+import { PlayersProjectedMNFPoints } from "../types";
 
 describe("Tiebreaker", () => {
-  const mockProjectedMNFPoints = {
+  const mockProjectedMNFPoints: PlayersProjectedMNFPoints = {
     Adam: 45,
     Alex: 50,
     Ben: 42,
@@ -79,7 +80,7 @@ describe("Tiebreaker", () => {
   });
 
   it("handles undefined projected points gracefully", () => {
-    const partialPoints = {
+    const partialPoints: PlayersProjectedMNFPoints = {
       Adam: 45,
       Nick: 51,
     };

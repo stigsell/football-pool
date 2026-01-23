@@ -12,57 +12,58 @@ import {
   mockScoresResponse,
   mockGames,
 } from "../__mocks__/testData";
+import { ESPNEvent, GameScore } from "../types";
 
 describe("didAwayTeamWin", () => {
   it("returns true when final and away score > home score", () => {
-    const score = { status: "Final", away_score: 28, home_score: 21 };
+    const score: GameScore = { status: "Final", away_score: 28, home_score: 21 };
     expect(didAwayTeamWin(score)).toBe(true);
   });
 
   it("returns false when final and home score > away score", () => {
-    const score = { status: "Final", away_score: 21, home_score: 28 };
+    const score: GameScore = { status: "Final", away_score: 21, home_score: 28 };
     expect(didAwayTeamWin(score)).toBe(false);
   });
 
   it("returns false when final and scores are tied", () => {
-    const score = { status: "Final", away_score: 21, home_score: 21 };
+    const score: GameScore = { status: "Final", away_score: 21, home_score: 21 };
     expect(didAwayTeamWin(score)).toBe(false);
   });
 
   it("returns false when game is not final", () => {
-    const score = { status: "In Progress", away_score: 28, home_score: 21 };
+    const score: GameScore = { status: "In Progress", away_score: 28, home_score: 21 };
     expect(didAwayTeamWin(score)).toBe(false);
   });
 
   it("returns false when game is scheduled", () => {
-    const score = { status: "Scheduled", away_score: 0, home_score: 0 };
+    const score: GameScore = { status: "Scheduled", away_score: 0, home_score: 0 };
     expect(didAwayTeamWin(score)).toBe(false);
   });
 });
 
 describe("didHomeTeamWin", () => {
   it("returns true when final and home score > away score", () => {
-    const score = { status: "Final", away_score: 21, home_score: 28 };
+    const score: GameScore = { status: "Final", away_score: 21, home_score: 28 };
     expect(didHomeTeamWin(score)).toBe(true);
   });
 
   it("returns false when final and away score > home score", () => {
-    const score = { status: "Final", away_score: 28, home_score: 21 };
+    const score: GameScore = { status: "Final", away_score: 28, home_score: 21 };
     expect(didHomeTeamWin(score)).toBe(false);
   });
 
   it("returns false when final and scores are tied", () => {
-    const score = { status: "Final", away_score: 21, home_score: 21 };
+    const score: GameScore = { status: "Final", away_score: 21, home_score: 21 };
     expect(didHomeTeamWin(score)).toBe(false);
   });
 
   it("returns false when game is not final", () => {
-    const score = { status: "In Progress", away_score: 21, home_score: 28 };
+    const score: GameScore = { status: "In Progress", away_score: 21, home_score: 28 };
     expect(didHomeTeamWin(score)).toBe(false);
   });
 
   it("returns false when game is Q2 0:00", () => {
-    const score = { status: "Q2 0:00", away_score: 14, home_score: 21 };
+    const score: GameScore = { status: "Q2 0:00", away_score: 14, home_score: 21 };
     expect(didHomeTeamWin(score)).toBe(false);
   });
 });
@@ -73,7 +74,7 @@ describe("getAwayScore", () => {
   });
 
   it("converts string score to number", () => {
-    const eventWithStringScore = {
+    const eventWithStringScore: ESPNEvent = {
       competitions: [
         {
           competitors: [
@@ -82,12 +83,12 @@ describe("getAwayScore", () => {
           ],
         },
       ],
-    };
+    } as ESPNEvent;
     expect(getAwayScore(eventWithStringScore)).toBe(17);
   });
 
   it("returns 0 for zero score", () => {
-    const eventWithZeroScore = {
+    const eventWithZeroScore: ESPNEvent = {
       competitions: [
         {
           competitors: [
@@ -96,7 +97,7 @@ describe("getAwayScore", () => {
           ],
         },
       ],
-    };
+    } as ESPNEvent;
     expect(getAwayScore(eventWithZeroScore)).toBe(0);
   });
 
@@ -111,7 +112,7 @@ describe("getHomeScore", () => {
   });
 
   it("converts string score to number", () => {
-    const eventWithStringScore = {
+    const eventWithStringScore: ESPNEvent = {
       competitions: [
         {
           competitors: [
@@ -120,12 +121,12 @@ describe("getHomeScore", () => {
           ],
         },
       ],
-    };
+    } as ESPNEvent;
     expect(getHomeScore(eventWithStringScore)).toBe(35);
   });
 
   it("returns 0 for zero score", () => {
-    const eventWithZeroScore = {
+    const eventWithZeroScore: ESPNEvent = {
       competitions: [
         {
           competitors: [
@@ -134,7 +135,7 @@ describe("getHomeScore", () => {
           ],
         },
       ],
-    };
+    } as ESPNEvent;
     expect(getHomeScore(eventWithZeroScore)).toBe(0);
   });
 
@@ -145,7 +146,7 @@ describe("getHomeScore", () => {
 
 describe("checkScore", () => {
   it("returns Final status for completed game", () => {
-    const game = { home: "KC", away: "BUF" };
+    const game = { home: "KC", away: "BUF", picks: [] };
     const result = checkScore(game, mockScoresResponse);
     expect(result.status).toBe("Final");
     expect(result.away_score).toBe(24);
@@ -174,15 +175,15 @@ describe("checkScore", () => {
         },
       ],
     };
-    const game = { home: "KC", away: "BUF" };
-    const result = checkScore(game, scoresWithInProgress);
+    const game = { home: "KC", away: "BUF", picks: [] };
+    const result = checkScore(game, scoresWithInProgress as any);
     expect(result.status).toBe("Q2 5:30");
     expect(result.away_score).toBe(10);
     expect(result.home_score).toBe(14);
   });
 
   it("handles game with team conversion", () => {
-    const game = { home: "DET", away: "CHIC" };
+    const game = { home: "DET", away: "CHIC", picks: [] };
     const result = checkScore(game, mockScoresResponse);
     expect(result.status).toBe("Final");
     expect(result.away_score).toBe(14);
@@ -190,7 +191,7 @@ describe("checkScore", () => {
   });
 
   it("returns correct scores for Miami at New England", () => {
-    const game = { home: "NE", away: "MIA" };
+    const game = { home: "NE", away: "MIA", picks: [] };
     const result = checkScore(game, mockScoresResponse);
     expect(result.status).toBe("Final");
     expect(result.away_score).toBe(28);
@@ -218,28 +219,27 @@ describe("calculateAllPlayersScores", () => {
     // KC won (home), MIA won (away), DET won (home)
     // Nick picked: KC (correct), MIA (correct), DET (correct) = 3
     const nickScore = result.find((p) => p[0] === "Nick");
-    expect(nickScore[1]).toBe(3);
+    expect(nickScore![1]).toBe(3);
   });
 
   it("calculates correct score for player with some wrong picks", () => {
     const result = calculateAllPlayersScores(mockGames, mockScoresResponse);
     // Alex picked: KC (correct), MIA (correct), CHIC (wrong) = 2
     const alexScore = result.find((p) => p[0] === "Alex");
-    expect(alexScore[1]).toBe(2);
+    expect(alexScore![1]).toBe(2);
   });
 
   it("calculates correct score for player with different picks", () => {
     const result = calculateAllPlayersScores(mockGames, mockScoresResponse);
     // Adam picked: BUF (wrong), MIA (correct), DET (correct) = 2
     const adamScore = result.find((p) => p[0] === "Adam");
-    expect(adamScore[1]).toBe(2);
+    expect(adamScore![1]).toBe(2);
   });
 
   it("handles ties correctly", () => {
     const result = calculateAllPlayersScores(mockGames, mockScoresResponse);
     // Check that players with same score are both present
-    const scores = result.map((p) => p[1]);
-    const nickScore = result.find((p) => p[0] === "Nick")[1];
+    const nickScore = result.find((p) => p[0] === "Nick")![1];
     const playersWithNickScore = result.filter((p) => p[1] === nickScore);
     // All players with the same score should be adjacent in the sorted list
     expect(playersWithNickScore.length).toBeGreaterThanOrEqual(1);

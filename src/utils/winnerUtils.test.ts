@@ -7,8 +7,8 @@ import {
   mockPlayersScores,
   mockPlayersScoresTied,
   mockPlayersScoresSingleWinner,
-  mockPlayersProjectedMNFPoints,
 } from "../__mocks__/testData";
+import { ESPNEvent, PlayerScoreTuple, PlayersProjectedMNFPoints } from "../types";
 
 describe("getWinners", () => {
   it("returns single winner when one player has highest score", () => {
@@ -18,7 +18,7 @@ describe("getWinners", () => {
   });
 
   it("returns multiple winners for two-way tie", () => {
-    const twoWayTie = [
+    const twoWayTie: PlayerScoreTuple[] = [
       ["Nick", 10],
       ["Adam", 10],
       ["Alex", 8],
@@ -40,13 +40,13 @@ describe("getWinners", () => {
   });
 
   it("handles single player array", () => {
-    const singlePlayer = [["Nick", 5]];
+    const singlePlayer: PlayerScoreTuple[] = [["Nick", 5]];
     const winners = getWinners(singlePlayer);
     expect(winners).toEqual(["Nick"]);
   });
 
   it("returns all players if all have same score", () => {
-    const allTied = [
+    const allTied: PlayerScoreTuple[] = [
       ["Nick", 7],
       ["Adam", 7],
       ["Alex", 7],
@@ -58,7 +58,7 @@ describe("getWinners", () => {
 
 describe("getTiebreakWinners", () => {
   // MNF game mock with total of 51 points (27 + 24)
-  const mnfGame = {
+  const mnfGame: ESPNEvent = {
     competitions: [
       {
         competitors: [
@@ -67,10 +67,10 @@ describe("getTiebreakWinners", () => {
         ],
       },
     ],
-  };
+  } as ESPNEvent;
 
   it("returns player with exact MNF total match", () => {
-    const projectedPoints = {
+    const projectedPoints: PlayersProjectedMNFPoints = {
       Nick: 51, // Exact match
       Adam: 45,
       Alex: 55,
@@ -81,7 +81,7 @@ describe("getTiebreakWinners", () => {
   });
 
   it("returns player closest to total when no exact match", () => {
-    const projectedPoints = {
+    const projectedPoints: PlayersProjectedMNFPoints = {
       Nick: 50, // 1 away
       Adam: 45, // 6 away
       Alex: 55, // 4 away
@@ -92,7 +92,7 @@ describe("getTiebreakWinners", () => {
   });
 
   it("returns multiple players if tied after tiebreak", () => {
-    const projectedPoints = {
+    const projectedPoints: PlayersProjectedMNFPoints = {
       Nick: 50, // 1 away
       Adam: 52, // 1 away (also closest)
       Alex: 55, // 4 away
@@ -103,7 +103,7 @@ describe("getTiebreakWinners", () => {
   });
 
   it("returns all players if all equidistant from total", () => {
-    const projectedPoints = {
+    const projectedPoints: PlayersProjectedMNFPoints = {
       Nick: 48, // 3 away
       Adam: 54, // 3 away
     };
@@ -113,7 +113,7 @@ describe("getTiebreakWinners", () => {
   });
 
   it("handles single winner correctly", () => {
-    const projectedPoints = {
+    const projectedPoints: PlayersProjectedMNFPoints = {
       Nick: 45,
     };
     const winners = ["Nick"];
@@ -122,7 +122,7 @@ describe("getTiebreakWinners", () => {
   });
 
   it("correctly calculates distance for over and under estimates", () => {
-    const projectedPoints = {
+    const projectedPoints: PlayersProjectedMNFPoints = {
       Nick: 41, // 10 under
       Adam: 61, // 10 over
       Alex: 50, // 1 under (closest)
@@ -133,7 +133,7 @@ describe("getTiebreakWinners", () => {
   });
 
   it("handles high point totals", () => {
-    const highScoringGame = {
+    const highScoringGame: ESPNEvent = {
       competitions: [
         {
           competitors: [
@@ -142,8 +142,8 @@ describe("getTiebreakWinners", () => {
           ],
         },
       ],
-    };
-    const projectedPoints = {
+    } as ESPNEvent;
+    const projectedPoints: PlayersProjectedMNFPoints = {
       Nick: 85, // 2 away from 87
       Adam: 90, // 3 away
     };

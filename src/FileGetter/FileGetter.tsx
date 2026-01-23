@@ -1,6 +1,15 @@
 import { useEffect } from "react";
 import { parseFile } from "./utils";
 import * as XLSX from "xlsx";
+import { Game, PlayersProjectedMNFPoints } from "../types";
+
+interface FileGetterProps {
+  file: string | null;
+  setFile: (file: string) => void;
+  setGames: (games: Game[]) => void;
+  setWeekNum: (weekNum: number) => void;
+  setProjectedMNFPoints: (points: PlayersProjectedMNFPoints) => void;
+}
 
 function FileGetter({
   file,
@@ -8,7 +17,7 @@ function FileGetter({
   setGames,
   setWeekNum,
   setProjectedMNFPoints,
-}) {
+}: FileGetterProps) {
   useEffect(() => {
     async function fetchAndParseExcel() {
       const weekNum = 18;
@@ -21,9 +30,9 @@ function FileGetter({
 
       setWeekNum(weekNum);
       setFile("Week " + weekNum + ";.xlsx");
-      const games = parseFile(json_file, weekNum);
+      const games = parseFile(json_file as Array<{ [key: string]: string | number }>, weekNum);
       setGames(games);
-      setProjectedMNFPoints(json_file.slice(-1)[0]);
+      setProjectedMNFPoints(json_file.slice(-1)[0] as PlayersProjectedMNFPoints);
     }
     fetchAndParseExcel();
   }, [setFile, setGames, setWeekNum, setProjectedMNFPoints]);
