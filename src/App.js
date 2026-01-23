@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+// TODO remove at start of next season
+
 import React, { useState } from "react";
 
 import FileGetter from "./FileGetter/FileGetter";
@@ -30,7 +33,8 @@ function App() {
       />
       {inputFile !== null && (
         <>
-          <h2>{weekNum > 0 && "Week " + weekNum}</h2>
+          {/* TODO remove at start of next season */}
+          {/* <h2>{weekNum > 0 && "Week " + weekNum}</h2>
           <ScoreFetcher weekNumber={weekNum}>
             <Leaderboard
               games={games}
@@ -45,7 +49,7 @@ function App() {
               playersProjectedMNFPoints={projectedMNFPoints}
               games={games}
             />
-          </ScoreFetcher>
+          </ScoreFetcher> */}
           <SeasonResults />
         </>
       )}
