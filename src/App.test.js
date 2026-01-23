@@ -1,154 +1,235 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import App from "./App";
+import * as XLSX from "xlsx";
 
-// Mock all child components to isolate App testing
-jest.mock("./FileGetter/FileGetter", () => {
-  const React = require("react");
-  return function MockFileGetter({
-    setFile,
-    setGames,
-    setWeekNum,
-    setProjectedMNFPoints,
-  }) {
-    React.useEffect(() => {
-      setFile("Week 1;.xlsx");
-      setWeekNum(1);
-      setGames([
-        {
-          home: "KC",
-          away: "BUF",
-          picks: [{ player: "Nick", pick: "KC" }],
-        },
-      ]);
-      setProjectedMNFPoints({ Nick: 45 });
-    }, [setFile, setGames, setWeekNum, setProjectedMNFPoints]);
-    return React.createElement("div", { "data-testid": "file-getter" });
+// Mock external dependencies only
+jest.mock("xlsx", () => ({
+  read: jest.fn(),
+  utils: {
+    sheet_to_json: jest.fn(),
+  },
+}));
+
+jest.mock("react-confetti", () => {
+  return function MockConfetti() {
+    return null;
   };
 });
 
-jest.mock("./ScoreFetcher/ScoreFetcher", () => {
-  const React = require("react");
-  return function MockScoreFetcher({ children, weekNumber }) {
-    return React.createElement(
-      "div",
-      { "data-testid": "score-fetcher", "data-week": weekNumber },
-      children
-    );
-  };
+jest.mock("react-use/lib/useWindowSize", () => {
+  return () => ({ width: 1024, height: 768 });
 });
 
-jest.mock("./Leaderboard/Leaderboard", () => {
-  const React = require("react");
-  return function MockLeaderboard() {
-    return React.createElement(
-      "div",
-      { "data-testid": "leaderboard" },
-      "Leaderboard"
-    );
-  };
+// Suppress console.log from source code
+const originalConsoleLog = console.log;
+beforeAll(() => {
+  console.log = jest.fn();
 });
-
-jest.mock("./Games/Games", () => {
-  const React = require("react");
-  return function MockGames() {
-    return React.createElement("div", { "data-testid": "games" }, "Games");
-  };
-});
-
-jest.mock("./Tiebreaker/Tiebreaker", () => {
-  const React = require("react");
-  return function MockTiebreaker() {
-    return React.createElement(
-      "div",
-      { "data-testid": "tiebreaker" },
-      "Tiebreaker"
-    );
-  };
-});
-
-jest.mock("./SeasonResults/SeasonResults", () => {
-  const React = require("react");
-  return function MockSeasonResults() {
-    return React.createElement(
-      "div",
-      { "data-testid": "season-results" },
-      "Season Results"
-    );
-  };
+afterAll(() => {
+  console.log = originalConsoleLog;
 });
 
 describe("App", () => {
-  it("renders the header with app title", () => {
+  // Must include all 11 players from constants.js
+  const allPlayerPicks = {
+    Adam: "kc",
+    Alex: "kc",
+    Ben: "kc",
+    Kylee: "buf",
+    Nick: "kc",
+    Rick: "kc",
+    Ricky: "kc",
+    Tammy: "buf",
+    Connor: "kc",
+    Noah: "kc",
+    Jake: "kc",
+  };
+
+  const allPlayerPicksMIA = {
+    Adam: "mia",
+    Alex: "mia",
+    Ben: "mia",
+    Kylee: "mia",
+    Nick: "mia",
+    Rick: "mia",
+    Ricky: "mia",
+    Tammy: "mia",
+    Connor: "mia",
+    Noah: "mia",
+    Jake: "mia",
+  };
+
+  const projectedPoints = {
+    Adam: 50,
+    Alex: 48,
+    Ben: 45,
+    Kylee: 52,
+    Nick: 45,
+    Rick: 47,
+    Ricky: 49,
+    Tammy: 44,
+    Connor: 51,
+    Noah: 46,
+    Jake: 43,
+  };
+
+  const mockExcelData = [
+    { "WK 18": "BUF", ...allPlayerPicks },
+    { "WK 18": "KC", ...allPlayerPicks },
+    { "WK 18": "MIA", ...allPlayerPicksMIA },
+    { "WK 18": "NE", ...allPlayerPicksMIA },
+    projectedPoints,
+  ];
+
+  const mockWorkbook = {
+    SheetNames: ["Sheet1"],
+    Sheets: { Sheet1: {} },
+  };
+
+  const mockScoresResponse = {
+    events: [
+      {
+        shortName: "BUF @ KC",
+        date: "2025-01-20T00:15Z",
+        status: {
+          type: { description: "Final", completed: true },
+          period: 4,
+          displayClock: "0:00",
+        },
+        competitions: [
+          {
+            competitors: [
+              { homeAway: "home", score: "27" },
+              { homeAway: "away", score: "24" },
+            ],
+          },
+        ],
+      },
+      {
+        shortName: "MIA @ NE",
+        date: "2025-01-19T18:00Z",
+        status: {
+          type: { description: "Final", completed: true },
+          period: 4,
+          displayClock: "0:00",
+        },
+        competitions: [
+          {
+            competitors: [
+              { homeAway: "home", score: "21" },
+              { homeAway: "away", score: "28" },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Mock fetch for both Excel file and ESPN API
+    global.fetch = jest.fn((url) => {
+      if (url.includes("spreadsheets")) {
+        return Promise.resolve({
+          arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+        });
+      }
+      // ESPN API
+      return Promise.resolve({
+        json: () => Promise.resolve(mockScoresResponse),
+      });
+    });
+
+    XLSX.read.mockReturnValue(mockWorkbook);
+    XLSX.utils.sheet_to_json.mockReturnValue(mockExcelData);
+  });
+
+  it("renders the header", () => {
     render(<App />);
     expect(screen.getByText("Siegl Football Pool")).toBeInTheDocument();
   });
 
-  it("renders the FileGetter component", () => {
-    render(<App />);
-    expect(screen.getByTestId("file-getter")).toBeInTheDocument();
-  });
-
-  it("renders week number after file is loaded", async () => {
+  it("displays week number after loading", async () => {
     render(<App />);
     await waitFor(() => {
-      expect(screen.getByText("Week 1")).toBeInTheDocument();
+      expect(screen.getByText("Week 18")).toBeInTheDocument();
     });
   });
 
-  it("renders ScoreFetcher components after file is loaded", async () => {
+  it("renders Leaderboard section", async () => {
     render(<App />);
     await waitFor(() => {
-      const scoreFetchers = screen.getAllByTestId("score-fetcher");
-      expect(scoreFetchers.length).toBe(3);
+      expect(screen.getByText("Leaderboard")).toBeInTheDocument();
     });
   });
 
-  it("renders Leaderboard component after file is loaded", async () => {
+  it("renders Games section", async () => {
     render(<App />);
     await waitFor(() => {
-      expect(screen.getByTestId("leaderboard")).toBeInTheDocument();
+      expect(screen.getByText("Games")).toBeInTheDocument();
     });
   });
 
-  it("renders Games component after file is loaded", async () => {
+  it("renders Tiebreaker section", async () => {
     render(<App />);
     await waitFor(() => {
-      expect(screen.getByTestId("games")).toBeInTheDocument();
+      expect(screen.getByText("Tiebreaker")).toBeInTheDocument();
     });
   });
 
-  it("renders Tiebreaker component after file is loaded", async () => {
+  it("renders Season Results section", async () => {
     render(<App />);
     await waitFor(() => {
-      expect(screen.getByTestId("tiebreaker")).toBeInTheDocument();
+      expect(screen.getByText("Season Results")).toBeInTheDocument();
     });
   });
 
-  it("renders SeasonResults component after file is loaded", async () => {
+  it("displays player names in leaderboard", async () => {
     render(<App />);
     await waitFor(() => {
-      expect(screen.getByTestId("season-results")).toBeInTheDocument();
+      expect(screen.getByText("Leaderboard")).toBeInTheDocument();
+    });
+    expect(screen.getAllByText("Nick").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Adam").length).toBeGreaterThan(0);
+  });
+
+  it("displays leaderboard headers", async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText("# Correct")).toBeInTheDocument();
     });
   });
 
-  it("passes weekNumber to ScoreFetcher", async () => {
+  it("fetches Excel file on mount", async () => {
     render(<App />);
     await waitFor(() => {
-      const scoreFetchers = screen.getAllByTestId("score-fetcher");
-      scoreFetchers.forEach((fetcher) => {
-        expect(fetcher).toHaveAttribute("data-week", "1");
-      });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("spreadsheets")
+      );
     });
   });
 
-  it("has App class on root div", () => {
+  it("fetches ESPN scores", async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("espn.com")
+      );
+    });
+  });
+
+  it("displays tiebreaker section with projected points header", async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText("Estimated MNF Points")).toBeInTheDocument();
+    });
+  });
+
+  it("has correct CSS classes", async () => {
     const { container } = render(<App />);
     expect(container.querySelector(".App")).toBeInTheDocument();
-  });
-
-  it("has App-header class on header", () => {
-    const { container } = render(<App />);
     expect(container.querySelector(".App-header")).toBeInTheDocument();
   });
 });
