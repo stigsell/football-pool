@@ -17,11 +17,11 @@
     "xlsx": "^0.18.5"
   },
   "scripts": {
-    "predeploy": "npm run build && cp CNAME build/CNAME",
+    "predeploy": "npm run test && npm run build && cp CNAME build/CNAME",
     "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --watchAll=false --coverage --collectCoverageFrom='src/**/*.js'",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -43,6 +43,13 @@
     ]
   },
   "devDependencies": {
+    "baseline-browser-mapping": "^2.9.17",
     "gh-pages": "^6.3.0"
+  },
+  "jest": {
+    "coveragePathIgnorePatterns": [
+      "src/index.js",
+      "src/reportWebVitals.js"
+    ]
   }
 }
