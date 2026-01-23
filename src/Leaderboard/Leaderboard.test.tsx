@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Leaderboard from "./Leaderboard";
+import { Game, ESPNScoresResponse, PlayersProjectedMNFPoints, Pick } from "../types";
 
 // Mock external libraries (not internal components)
 jest.mock("react-confetti", () => {
@@ -15,11 +16,11 @@ jest.mock("react-use/lib/useWindowSize", () => {
 
 describe("Leaderboard", () => {
   // Helper to create player picks for all 11 players
-  const createPicks = (pickFn) =>
+  const createPicks = (pickFn: (player: string) => string): Pick[] =>
     ["Adam", "Alex", "Ben", "Kylee", "Nick", "Rick", "Ricky", "Tammy", "Connor", "Noah", "Jake"]
       .map((player) => ({ player, pick: pickFn(player) }));
 
-  const mockGames = [
+  const mockGames: Game[] = [
     {
       home: "KC",
       away: "BUF",
@@ -37,12 +38,12 @@ describe("Leaderboard", () => {
     },
   ];
 
-  const mockProjectedMNFPoints = {
+  const mockProjectedMNFPoints: PlayersProjectedMNFPoints = {
     Nick: 51, Adam: 45, Alex: 50, Ben: 48, Kylee: 42,
     Rick: 55, Ricky: 47, Tammy: 40, Connor: 52, Noah: 44, Jake: 49,
   };
 
-  const createScores = (completed = true) => ({
+  const createScores = (completed = true): ESPNScoresResponse => ({
     events: [
       {
         shortName: "BUF @ KC",
@@ -80,7 +81,11 @@ describe("Leaderboard", () => {
     ],
   });
 
-  const renderLeaderboard = (options = {}) => {
+  const renderLeaderboard = (options: {
+    games?: Game[];
+    scores?: ESPNScoresResponse;
+    projectedPoints?: PlayersProjectedMNFPoints;
+  } = {}) => {
     const {
       games = mockGames,
       scores = createScores(),
@@ -132,7 +137,7 @@ describe("Leaderboard", () => {
   });
 
   it("shows eliminated emoji when player cannot catch up", () => {
-    const scoresWithOneRemaining = {
+    const scoresWithOneRemaining: ESPNScoresResponse = {
       events: [
         {
           shortName: "BUF @ KC",

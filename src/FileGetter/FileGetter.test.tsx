@@ -11,6 +11,8 @@ jest.mock("xlsx", () => ({
   },
 }));
 
+const mockedXLSX = XLSX as jest.Mocked<typeof XLSX>;
+
 // Mock fetch
 global.fetch = jest.fn();
 
@@ -38,11 +40,11 @@ describe("FileGetter", () => {
   ];
 
   it("renders null (no visible output)", () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
     });
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockJsonData);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockJsonData);
 
     const { container } = render(
       <FileGetter
@@ -58,11 +60,11 @@ describe("FileGetter", () => {
   });
 
   it("fetches the Excel file on mount", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
     });
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockJsonData);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockJsonData);
 
     render(
       <FileGetter
@@ -80,11 +82,11 @@ describe("FileGetter", () => {
   });
 
   it("sets week number on successful fetch", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
     });
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockJsonData);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockJsonData);
 
     render(
       <FileGetter
@@ -102,11 +104,11 @@ describe("FileGetter", () => {
   });
 
   it("sets file name on successful fetch", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
     });
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockJsonData);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockJsonData);
 
     render(
       <FileGetter
@@ -124,11 +126,11 @@ describe("FileGetter", () => {
   });
 
   it("parses games and calls setGames", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
     });
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockJsonData);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockJsonData);
 
     render(
       <FileGetter
@@ -148,11 +150,11 @@ describe("FileGetter", () => {
   });
 
   it("sets projected MNF points from last row", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
     });
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockJsonData);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockJsonData);
 
     render(
       <FileGetter
@@ -174,11 +176,11 @@ describe("FileGetter", () => {
 
   it("reads workbook with XLSX", async () => {
     const mockArrayBuffer = new ArrayBuffer(8);
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       arrayBuffer: () => Promise.resolve(mockArrayBuffer),
     });
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockJsonData);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockJsonData);
 
     render(
       <FileGetter
@@ -191,12 +193,12 @@ describe("FileGetter", () => {
     );
 
     await waitFor(() => {
-      expect(XLSX.read).toHaveBeenCalledWith(mockArrayBuffer, { type: "array" });
+      expect(mockedXLSX.read).toHaveBeenCalledWith(mockArrayBuffer, { type: "array" });
     });
   });
 
   it("uses first sheet from workbook", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
     });
     const multiSheetWorkbook = {
@@ -206,8 +208,8 @@ describe("FileGetter", () => {
         SecondSheet: { A1: "other" },
       },
     };
-    XLSX.read.mockReturnValue(multiSheetWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockJsonData);
+    mockedXLSX.read.mockReturnValue(multiSheetWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockJsonData);
 
     render(
       <FileGetter
@@ -220,7 +222,7 @@ describe("FileGetter", () => {
     );
 
     await waitFor(() => {
-      expect(XLSX.utils.sheet_to_json).toHaveBeenCalledWith(
+      expect(mockedXLSX.utils.sheet_to_json).toHaveBeenCalledWith(
         multiSheetWorkbook.Sheets.FirstSheet
       );
     });

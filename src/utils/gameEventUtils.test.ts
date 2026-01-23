@@ -18,9 +18,8 @@ import {
   mockScoresResponse,
   mockScoresResponseWithIncomplete,
   mockGames,
-  mockGamesUnanimous,
-  mockGamesMixed,
 } from "../__mocks__/testData";
+import { ESPNScoresResponse } from "../types";
 
 describe("isGameInProgress", () => {
   it("returns true for 'In Progress' status", () => {
@@ -61,28 +60,28 @@ describe("getEventStatus", () => {
 describe("getAwayTeam", () => {
   it("extracts competitor with homeAway='away'", () => {
     const awayTeam = getAwayTeam(mockEvent);
-    expect(awayTeam.homeAway).toBe("away");
-    expect(awayTeam.score).toBe("24");
+    expect(awayTeam!.homeAway).toBe("away");
+    expect(awayTeam!.score).toBe("24");
   });
 
   it("returns correct away team from in-progress game", () => {
     const awayTeam = getAwayTeam(mockEventInProgress);
-    expect(awayTeam.homeAway).toBe("away");
-    expect(awayTeam.score).toBe("3");
+    expect(awayTeam!.homeAway).toBe("away");
+    expect(awayTeam!.score).toBe("3");
   });
 });
 
 describe("getHomeTeam", () => {
   it("extracts competitor with homeAway='home'", () => {
     const homeTeam = getHomeTeam(mockEvent);
-    expect(homeTeam.homeAway).toBe("home");
-    expect(homeTeam.score).toBe("27");
+    expect(homeTeam!.homeAway).toBe("home");
+    expect(homeTeam!.score).toBe("27");
   });
 
   it("returns correct home team from in-progress game", () => {
     const homeTeam = getHomeTeam(mockEventInProgress);
-    expect(homeTeam.homeAway).toBe("home");
-    expect(homeTeam.score).toBe("7");
+    expect(homeTeam!.homeAway).toBe("home");
+    expect(homeTeam!.score).toBe("7");
   });
 });
 
@@ -128,11 +127,11 @@ describe("getMNFGame", () => {
   });
 
   it("handles multiple games with correct sorting", () => {
-    const multipleGames = {
+    const multipleGames: ESPNScoresResponse = {
       events: [
-        { shortName: "Game1", date: "2025-01-19T13:00Z" },
-        { shortName: "Game3", date: "2025-01-21T01:00Z" },
-        { shortName: "Game2", date: "2025-01-20T18:00Z" },
+        { shortName: "Game1", date: "2025-01-19T13:00Z" } as any,
+        { shortName: "Game3", date: "2025-01-21T01:00Z" } as any,
+        { shortName: "Game2", date: "2025-01-20T18:00Z" } as any,
       ],
     };
     const mnfGame = getMNFGame(multipleGames);
@@ -140,8 +139,8 @@ describe("getMNFGame", () => {
   });
 
   it("returns the only game when there is just one", () => {
-    const singleGame = {
-      events: [{ shortName: "OnlyGame", date: "2025-01-19T13:00Z" }],
+    const singleGame: ESPNScoresResponse = {
+      events: [{ shortName: "OnlyGame", date: "2025-01-19T13:00Z" } as any],
     };
     const mnfGame = getMNFGame(singleGame);
     expect(mnfGame.shortName).toBe("OnlyGame");
@@ -152,7 +151,7 @@ describe("getGame", () => {
   it("finds game by home/away teams (Rick format)", () => {
     const game = getGame("KC", "BUF", mockScoresResponse);
     expect(game).toBeDefined();
-    expect(game.shortName).toBe("BUF @ KC");
+    expect(game!.shortName).toBe("BUF @ KC");
   });
 
   it("returns undefined for non-existent game", () => {
@@ -163,13 +162,13 @@ describe("getGame", () => {
   it("finds game with team conversion (CHIC -> CHI)", () => {
     const game = getGame("DET", "CHIC", mockScoresResponse);
     expect(game).toBeDefined();
-    expect(game.shortName).toBe("CHI @ DET");
+    expect(game!.shortName).toBe("CHI @ DET");
   });
 
   it("finds game with NE team", () => {
     const game = getGame("NE", "MIA", mockScoresResponse);
     expect(game).toBeDefined();
-    expect(game.shortName).toBe("MIA @ NE");
+    expect(game!.shortName).toBe("MIA @ NE");
   });
 
   it("returns undefined for invalid team code (tests convertRickToESPN null branch)", () => {
@@ -178,7 +177,7 @@ describe("getGame", () => {
   });
 
   it("handles VS format in shortName", () => {
-    const scoresWithVS = {
+    const scoresWithVS: ESPNScoresResponse = {
       events: [
         {
           shortName: "BUF VS KC",
@@ -201,7 +200,7 @@ describe("getGame", () => {
     };
     const game = getGame("KC", "BUF", scoresWithVS);
     expect(game).toBeDefined();
-    expect(game.shortName).toBe("BUF VS KC");
+    expect(game!.shortName).toBe("BUF VS KC");
   });
 });
 
@@ -215,18 +214,18 @@ describe("getNumberOfGamesRemaining", () => {
   });
 
   it("returns total count when no games are complete", () => {
-    const noComplete = {
+    const noComplete: ESPNScoresResponse = {
       events: [
-        { status: { type: { completed: false } } },
-        { status: { type: { completed: false } } },
-        { status: { type: { completed: false } } },
+        { status: { type: { completed: false } } } as any,
+        { status: { type: { completed: false } } } as any,
+        { status: { type: { completed: false } } } as any,
       ],
     };
     expect(getNumberOfGamesRemaining(noComplete)).toBe(3);
   });
 
   it("returns 0 for empty events array", () => {
-    const emptyEvents = { events: [] };
+    const emptyEvents: ESPNScoresResponse = { events: [] };
     expect(getNumberOfGamesRemaining(emptyEvents)).toBe(0);
   });
 });
@@ -241,7 +240,7 @@ describe("areAllGamesFinished", () => {
   });
 
   it("returns true for empty events array", () => {
-    const emptyEvents = { events: [] };
+    const emptyEvents: ESPNScoresResponse = { events: [] };
     expect(areAllGamesFinished(emptyEvents, mockGames)).toBe(true);
   });
 });
@@ -255,7 +254,7 @@ describe("areAllNonUnanimousGamesFinished", () => {
 
   it("returns false when non-unanimous games are not finished", () => {
     // Create scores with KC game (non-unanimous) in progress
-    const scoresWithKCInProgress = {
+    const scoresWithKCInProgress: ESPNScoresResponse = {
       events: [
         {
           shortName: "BUF @ KC",
@@ -315,7 +314,7 @@ describe("areAllNonUnanimousGamesFinished", () => {
 
   it("handles unknown ESPN team code (tests convertESPNToRick null branch)", () => {
     // Create scores with an unknown team code that won't be in ESPN_TO_RICK
-    const scoresWithUnknownTeam = {
+    const scoresWithUnknownTeam: ESPNScoresResponse = {
       events: [
         {
           shortName: "XXX @ YYY",

@@ -9,6 +9,8 @@ jest.mock("xlsx", () => ({
   },
 }));
 
+const mockedXLSX = XLSX as jest.Mocked<typeof XLSX>;
+
 describe("parseFile", () => {
   it("parses a single game correctly", () => {
     const data = [
@@ -104,7 +106,7 @@ describe("readFile", () => {
     const mockArrayBuffer = new ArrayBuffer(8);
     const mockFile = {
       arrayBuffer: jest.fn().mockResolvedValue(mockArrayBuffer),
-    };
+    } as unknown as File;
     const mockWorkbook = {
       SheetNames: ["Sheet1"],
       Sheets: {
@@ -116,16 +118,16 @@ describe("readFile", () => {
       { "WK 1": "KC", Nick: "kc" },
     ];
 
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue(mockJsonData);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockJsonData);
 
     const result = await readFile(mockFile);
 
     expect(mockFile.arrayBuffer).toHaveBeenCalled();
-    expect(XLSX.read).toHaveBeenCalledWith(mockArrayBuffer);
-    expect(XLSX.utils.sheet_to_json).toHaveBeenCalledWith(
+    expect(mockedXLSX.read).toHaveBeenCalledWith(mockArrayBuffer);
+    expect(mockedXLSX.utils.sheet_to_json).toHaveBeenCalledWith(
       mockWorkbook.Sheets.Sheet1,
-      { blankRows: false }
+      { blankrows: false }
     );
     expect(result).toEqual(mockJsonData);
   });
@@ -134,7 +136,7 @@ describe("readFile", () => {
     const mockArrayBuffer = new ArrayBuffer(8);
     const mockFile = {
       arrayBuffer: jest.fn().mockResolvedValue(mockArrayBuffer),
-    };
+    } as unknown as File;
     const mockWorkbook = {
       SheetNames: ["FirstSheet", "SecondSheet"],
       Sheets: {
@@ -143,14 +145,14 @@ describe("readFile", () => {
       },
     };
 
-    XLSX.read.mockReturnValue(mockWorkbook);
-    XLSX.utils.sheet_to_json.mockReturnValue([]);
+    mockedXLSX.read.mockReturnValue(mockWorkbook as any);
+    (mockedXLSX.utils.sheet_to_json as jest.Mock).mockReturnValue([]);
 
     await readFile(mockFile);
 
-    expect(XLSX.utils.sheet_to_json).toHaveBeenCalledWith(
+    expect(mockedXLSX.utils.sheet_to_json).toHaveBeenCalledWith(
       mockWorkbook.Sheets.FirstSheet,
-      { blankRows: false }
+      { blankrows: false }
     );
   });
 });

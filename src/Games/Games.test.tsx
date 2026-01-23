@@ -1,9 +1,10 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Games from "./Games";
+import { Game, ESPNScoresResponse } from "../types";
 
 describe("Games", () => {
-  const mockScores = {
+  const mockScores: ESPNScoresResponse = {
     events: [
       {
         shortName: "BUF @ KC",
@@ -42,7 +43,7 @@ describe("Games", () => {
     ],
   };
 
-  const mockGames = [
+  const mockGames: Game[] = [
     {
       home: "KC",
       away: "BUF",
@@ -169,10 +170,11 @@ describe("Games", () => {
 
   it("applies Game__win class to correct picks when away team wins", () => {
     // Create a scenario where away team wins
-    const awayWinScores = {
+    const awayWinScores: ESPNScoresResponse = {
       events: [
         {
           shortName: "BUF @ KC",
+          date: "2025-01-20T00:15Z",
           status: {
             type: { description: "Final", completed: true },
             period: 4,
@@ -190,7 +192,7 @@ describe("Games", () => {
       ],
     };
 
-    const games = [
+    const games: Game[] = [
       {
         home: "KC",
         away: "BUF",

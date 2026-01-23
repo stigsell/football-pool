@@ -7,8 +7,9 @@ import {
   getEventStatus,
 } from "./gameEventUtils";
 import { formatInProgressGameClock } from "./formatUtils";
+import { ESPNEvent, ESPNScoresResponse, Game, GameScore, Pick, PlayerScoreTuple } from "../types";
 
-const calculatePlayerTotalScore = (player, games, scores) => {
+const calculatePlayerTotalScore = (player: string, games: Game[], scores: ESPNScoresResponse): number => {
   let playerScore = 0;
   for (const game of games) {
     const score = checkScore(game, scores);
@@ -20,20 +21,20 @@ const calculatePlayerTotalScore = (player, games, scores) => {
   return playerScore;
 };
 
-const getPlayerPick = (player, picks) =>
+const getPlayerPick = (player: string, picks: Pick[]): string =>
   picks.filter((pick) => pick.player === player)[0].pick;
 
-const didPlayerMakeCorrectPick = (score, pick, game) =>
+const didPlayerMakeCorrectPick = (score: GameScore, pick: string, game: Game): boolean =>
   (didAwayTeamWin(score) && pick === game.away) ||
   (didHomeTeamWin(score) && pick === game.home);
 
-export const calculateAllPlayersScores = (games, scores) => {
-  const allPlayersScores = {};
+export const calculateAllPlayersScores = (games: Game[], scores: ESPNScoresResponse): PlayerScoreTuple[] => {
+  const allPlayersScores: Record<string, number> = {};
   for (const player of PLAYERS) {
     const playerScore = calculatePlayerTotalScore(player, games, scores);
     allPlayersScores[player] = playerScore;
   }
-  const sortedScores = [];
+  const sortedScores: PlayerScoreTuple[] = [];
   for (var player in allPlayersScores) {
     sortedScores.push([player, allPlayersScores[player]]);
   }
@@ -44,20 +45,20 @@ export const calculateAllPlayersScores = (games, scores) => {
   return sortedScores;
 };
 
-export const didAwayTeamWin = (score) =>
+export const didAwayTeamWin = (score: GameScore): boolean =>
   score["status"] === "Final" && score["away_score"] > score["home_score"];
 
-export const didHomeTeamWin = (score) =>
+export const didHomeTeamWin = (score: GameScore): boolean =>
   score["status"] === "Final" && score["home_score"] > score["away_score"];
 
-export const getAwayScore = (event) => Number(getAwayTeam(event)["score"]);
+export const getAwayScore = (event: ESPNEvent): number => Number(getAwayTeam(event)!["score"]);
 
-export const getHomeScore = (event) => Number(getHomeTeam(event)["score"]);
+export const getHomeScore = (event: ESPNEvent): number => Number(getHomeTeam(event)!["score"]);
 
-export const checkScore = (game, scores) => {
-  const event = getGame(game.home, game.away, scores);
+export const checkScore = (game: Game, scores: ESPNScoresResponse): GameScore => {
+  const event = getGame(game.home, game.away, scores)!;
 
-  const result = {
+  const result: GameScore = {
     status: isGameInProgress(event)
       ? formatInProgressGameClock(event)
       : getEventStatus(event),

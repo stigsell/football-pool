@@ -13,7 +13,7 @@ export const PLAYERS = [
   "Connor",
   "Noah",
   "Jake",
-];
+] as const;
 
 export const RICK_TO_ESPN = [
   ["ATL", "ATL"],
@@ -48,7 +48,7 @@ export const RICK_TO_ESPN = [
   ["TB", "TB"],
   ["TN", "TEN"],
   ["WASH", "WSH"],
-];
+] as const;
 
 export const ESPN_TO_RICK = [
   ["ATL", "ATL"],
@@ -83,4 +83,4 @@ export const ESPN_TO_RICK = [
   ["TB", "TB"],
   ["TEN", "TN"],
   ["WSH", "WASH"],
-];
+] as const;

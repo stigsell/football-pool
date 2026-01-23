@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import ScoreFetcher from "./ScoreFetcher";
+import { ESPNScoresResponse } from "../types";
 
 // Mock the fetch API
 global.fetch = jest.fn();
@@ -19,17 +20,19 @@ describe("ScoreFetcher", () => {
     jest.clearAllMocks();
   });
 
-  const mockScoresData = {
+  const mockScoresData: ESPNScoresResponse = {
     events: [
       {
         shortName: "BUF @ KC",
-        status: { type: { completed: true } },
+        date: "2025-01-20T00:15Z",
+        status: { type: { completed: true, description: "Final" }, period: 4, displayClock: "0:00" },
+        competitions: [{ competitors: [{ homeAway: "home", score: "27" }, { homeAway: "away", score: "24" }] }],
       },
     ],
   };
 
   it("renders nothing initially while loading", () => {
-    fetch.mockImplementation(() => new Promise(() => {})); // Never resolves
+    (global.fetch as jest.Mock).mockImplementation(() => new Promise(() => {})); // Never resolves
 
     const { container } = render(
       <ScoreFetcher weekNumber={1}>
@@ -41,7 +44,7 @@ describe("ScoreFetcher", () => {
   });
 
   it("fetches scores from ESPN API with correct week number", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       json: () => Promise.resolve(mockScoresData),
     });
 
@@ -59,7 +62,7 @@ describe("ScoreFetcher", () => {
   });
 
   it("renders children after scores are fetched", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       json: () => Promise.resolve(mockScoresData),
     });
 
@@ -75,11 +78,11 @@ describe("ScoreFetcher", () => {
   });
 
   it("passes scores prop to child components", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       json: () => Promise.resolve(mockScoresData),
     });
 
-    const ChildComponent = ({ scores }) => (
+    const ChildComponent = ({ scores }: { scores?: ESPNScoresResponse }) => (
       <div data-testid="child">
         {scores && scores.events && scores.events.length > 0
           ? "Has Scores"
@@ -99,7 +102,7 @@ describe("ScoreFetcher", () => {
   });
 
   it("handles multiple children", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       json: () => Promise.resolve(mockScoresData),
     });
 
@@ -117,7 +120,7 @@ describe("ScoreFetcher", () => {
   });
 
   it("handles non-element children", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       json: () => Promise.resolve(mockScoresData),
     });
 
@@ -135,7 +138,7 @@ describe("ScoreFetcher", () => {
   });
 
   it("refetches when weekNumber changes", async () => {
-    fetch.mockResolvedValue({
+    (global.fetch as jest.Mock).mockResolvedValue({
       json: () => Promise.resolve(mockScoresData),
     });
 
@@ -161,7 +164,7 @@ describe("ScoreFetcher", () => {
   });
 
   it("uses correct ESPN API URL format", async () => {
-    fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       json: () => Promise.resolve(mockScoresData),
     });
 
