@@ -96,7 +96,7 @@ describe("parseFile", () => {
     expect(games[0].home).toBe("SEA");
   });
 
-  it("skips non-string values in picks (line 16)", () => {
+  it("skips non-string values in picks", () => {
     const data = [
       { "WK 1": "BUF", Nick: "buf", Adam: 123 }, // Adam has number value
       { "WK 1": "KC", Nick: "kc", Adam: 456 },   // Adam has number value
@@ -110,7 +110,7 @@ describe("parseFile", () => {
     expect(games[0].picks[0].player).toBe("Nick");
   });
 
-  it("skips rows where team value is not a string (lines 29-31)", () => {
+  it("skips rows where team value is not a string", () => {
     const data = [
       { "WK 1": 123, Nick: "buf" },     // away team is number
       { "WK 1": "KC", Nick: "kc" },     // home team is string

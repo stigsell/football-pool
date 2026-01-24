@@ -280,7 +280,7 @@ describe("Games", () => {
 
     const { container } = render(<Games games={gamesWithUnknownTeam} scores={mockScores} />);
     // Game should be shown because it defaults to "not completed" when event not found
-    // But checkScore returns undefined so it won't render (line 58)
+    // But checkScore returns undefined so it won't render
     expect(container.querySelector(".Game")).not.toBeInTheDocument();
   });
 

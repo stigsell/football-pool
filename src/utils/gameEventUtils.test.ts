@@ -351,7 +351,7 @@ describe("areAllNonUnanimousGamesFinished", () => {
     expect(areAllNonUnanimousGamesFinished(scoresWithUnknownTeam, mockGames)).toBe(true);
   });
 
-  it("filters out events when getGame returns undefined (line 60)", () => {
+  it("filters out events when getGame returns undefined", () => {
     // Create a score event with valid ESPN codes that can be converted to Rick codes,
     // but then getGame won't find a matching event (swapped home/away)
     const scoresWithMismatchedGame: ESPNScoresResponse = {
@@ -380,7 +380,7 @@ describe("areAllNonUnanimousGamesFinished", () => {
     expect(areAllNonUnanimousGamesFinished(scoresWithMismatchedGame, mockGames)).toBe(true);
   });
 
-  it("filters out events when game is not in games array (line 62-63)", () => {
+  it("filters out events when game is not in games array", () => {
     // Create scores with a valid game that exists in ESPN but not in our games array
     const scoresWithExtraGame: ESPNScoresResponse = {
       events: [
@@ -407,7 +407,7 @@ describe("areAllNonUnanimousGamesFinished", () => {
     expect(areAllNonUnanimousGamesFinished(scoresWithExtraGame, mockGames)).toBe(true);
   });
 
-  it("filters when only away team code is invalid (line 27 branch)", () => {
+  it("filters when only away team code is invalid", () => {
     // XXX is invalid, KC is valid - tests the !rick_away branch
     const scoresWithInvalidAway: ESPNScoresResponse = {
       events: [
@@ -433,7 +433,7 @@ describe("areAllNonUnanimousGamesFinished", () => {
     expect(areAllNonUnanimousGamesFinished(scoresWithInvalidAway, mockGames)).toBe(true);
   });
 
-  it("filters when only home team code is invalid (line 27 branch)", () => {
+  it("filters when only home team code is invalid", () => {
     // BUF is valid, YYY is invalid - tests the !rick_home branch
     const scoresWithInvalidHome: ESPNScoresResponse = {
       events: [
