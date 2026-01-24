@@ -1,4 +1,4 @@
-import { ESPNEvent } from "../types";
+import type { ESPNEvent } from "../types";
 
 export const formatInProgressGameClock = (event: ESPNEvent): string =>
   "Q" + event["status"]["period"] + " " + event["status"]["displayClock"];

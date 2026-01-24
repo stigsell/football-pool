@@ -8,7 +8,7 @@ import {
 } from "../utils/scoreUtils";
 
 import { formatTwoScores } from "../utils/formatUtils";
-import { Game, ESPNScoresResponse } from "../types";
+import type { Game, ESPNScoresResponse } from "../types";
 
 interface GamesProps {
   games: Game[];

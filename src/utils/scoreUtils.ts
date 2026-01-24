@@ -1,4 +1,5 @@
-import { PLAYERS, Player } from "./constants";
+import { PLAYERS } from "./constants";
+import type { Player } from "./constants";
 import {
   getAwayTeam,
   getHomeTeam,
@@ -7,7 +8,7 @@ import {
   getEventStatus,
 } from "./gameEventUtils";
 import { formatInProgressGameClock } from "./formatUtils";
-import { ESPNEvent, ESPNScoresResponse, Game, GameScore, Pick, PlayerScoreTuple } from "../types";
+import type { ESPNEvent, ESPNScoresResponse, Game, GameScore, Pick, PlayerScoreTuple } from "../types";
 
 const calculatePlayerTotalScore = (player: Player, games: Game[], scores: ESPNScoresResponse): number => {
   let playerScore = 0;

@@ -9,7 +9,7 @@ import {
 } from "../utils/winnerUtils";
 import { getNumberOfGamesRemaining } from "../utils/gameEventUtils";
 import { calculateAllPlayersScores } from "../utils/scoreUtils";
-import { Game, ESPNScoresResponse, PlayersProjectedMNFPoints } from "../types";
+import type { Game, ESPNScoresResponse, PlayersProjectedMNFPoints } from "../types";
 
 interface LeaderboardProps {
   games: Game[];
@@ -40,14 +40,14 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardPr
   return (
     <>
       <h2>Leaderboard</h2>
-      {allGamesFinished && (
+      {allGamesFinished ? (
         <Confetti
           width={width}
           height={height}
           numberOfPieces={600}
           recycle={false}
         />
-      )}
+      ) : null}
 
       <div className="Leaderboard">
         <table className="Leaderboard__table">
@@ -68,9 +68,10 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardPr
             {allPlayersScores.map((score) => (
               <tr key={score[0]}>
                 <td>
-                  {winners.includes(score[0]) && allGamesFinished && "🏆"}
-                  {isPlayerEliminated(highScore, score[1], gamesRemaining) &&
-                    "❌"}
+                  {winners.includes(score[0]) && allGamesFinished ? "🏆" : null}
+                  {isPlayerEliminated(highScore, score[1], gamesRemaining)
+                    ? "❌"
+                    : null}
                 </td>
                 <td>{score[0]}</td>
                 <td>{score[1]}</td>

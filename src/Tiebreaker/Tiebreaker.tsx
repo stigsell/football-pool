@@ -1,5 +1,5 @@
 import { PLAYERS } from "../utils/constants";
-import { PlayersProjectedMNFPoints } from "../types";
+import type { PlayersProjectedMNFPoints } from "../types";
 
 interface TiebreakerProps {
   playersProjectedMNFPoints: PlayersProjectedMNFPoints;

@@ -1,6 +1,7 @@
-import React, { useEffect, useState, ReactElement } from "react";
+import React, { useEffect, useState } from "react";
+import type { ReactElement } from "react";
 import { ESPN_API_URL } from "../utils/constants";
-import { ESPNScoresResponse } from "../types";
+import type { ESPNScoresResponse } from "../types";
 
 interface ScoreFetcherProps {
   children: React.ReactNode;

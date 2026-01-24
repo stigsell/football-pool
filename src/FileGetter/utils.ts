@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
-import { Game, Pick } from "../types";
-import { Player, RickTeamCode } from "../utils/constants";
+import type { Game, Pick } from "../types";
+import type { Player, RickTeamCode } from "../utils/constants";
 
 export interface ExcelRow {
   [key: string]: string | number | undefined;

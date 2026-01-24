@@ -1,5 +1,6 @@
-import { RICK_TO_ESPN_MAP, ESPN_TO_RICK_MAP, RickTeamCode, ESPNTeamCode } from "./constants";
-import { ESPNEvent, ESPNScoresResponse, Game, Pick, Competitor } from "../types";
+import { RICK_TO_ESPN_MAP, ESPN_TO_RICK_MAP } from "./constants";
+import type { RickTeamCode, ESPNTeamCode } from "./constants";
+import type { ESPNEvent, ESPNScoresResponse, Game, Pick, Competitor } from "../types";
 
 const getEvent = (events: ESPNEvent[], espn_home: ESPNTeamCode | undefined, espn_away: ESPNTeamCode | undefined): ESPNEvent | undefined =>
   events.find(
