@@ -12,7 +12,11 @@ import {
   mockScoresResponse,
   mockGames,
 } from "../__mocks__/testData";
-import { ESPNEvent, GameScore } from "../types";
+import { ESPNEvent, GameScore, Game } from "../types";
+import { RickTeamCode } from "./constants";
+
+// Helper to create a typed game with empty picks
+const game = (home: RickTeamCode, away: RickTeamCode): Game => ({ home, away, picks: [] });
 
 describe("didAwayTeamWin", () => {
   it("returns true when final and away score > home score", () => {
@@ -146,11 +150,10 @@ describe("getHomeScore", () => {
 
 describe("checkScore", () => {
   it("returns Final status for completed game", () => {
-    const game = { home: "KC", away: "BUF", picks: [] };
-    const result = checkScore(game, mockScoresResponse);
-    expect(result.status).toBe("Final");
-    expect(result.away_score).toBe(24);
-    expect(result.home_score).toBe(27);
+    const result = checkScore(game("KC", "BUF"), mockScoresResponse);
+    expect(result?.status).toBe("Final");
+    expect(result?.away_score).toBe(24);
+    expect(result?.home_score).toBe(27);
   });
 
   it("returns formatted clock for in-progress game", () => {
@@ -175,27 +178,24 @@ describe("checkScore", () => {
         },
       ],
     };
-    const game = { home: "KC", away: "BUF", picks: [] };
-    const result = checkScore(game, scoresWithInProgress as any);
-    expect(result.status).toBe("Q2 5:30");
-    expect(result.away_score).toBe(10);
-    expect(result.home_score).toBe(14);
+    const result = checkScore(game("KC", "BUF"), scoresWithInProgress as any);
+    expect(result?.status).toBe("Q2 5:30");
+    expect(result?.away_score).toBe(10);
+    expect(result?.home_score).toBe(14);
   });
 
   it("handles game with team conversion", () => {
-    const game = { home: "DET", away: "CHIC", picks: [] };
-    const result = checkScore(game, mockScoresResponse);
-    expect(result.status).toBe("Final");
-    expect(result.away_score).toBe(14);
-    expect(result.home_score).toBe(35);
+    const result = checkScore(game("DET", "CHIC"), mockScoresResponse);
+    expect(result?.status).toBe("Final");
+    expect(result?.away_score).toBe(14);
+    expect(result?.home_score).toBe(35);
   });
 
   it("returns correct scores for Miami at New England", () => {
-    const game = { home: "NE", away: "MIA", picks: [] };
-    const result = checkScore(game, mockScoresResponse);
-    expect(result.status).toBe("Final");
-    expect(result.away_score).toBe(28);
-    expect(result.home_score).toBe(21);
+    const result = checkScore(game("NE", "MIA"), mockScoresResponse);
+    expect(result?.status).toBe("Final");
+    expect(result?.away_score).toBe(28);
+    expect(result?.home_score).toBe(21);
   });
 });
 
@@ -243,5 +243,64 @@ describe("calculateAllPlayersScores", () => {
     const playersWithNickScore = result.filter((p) => p[1] === nickScore);
     // All players with the same score should be adjacent in the sorted list
     expect(playersWithNickScore.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("skips games where checkScore returns undefined", () => {
+    // Create games where one game won't match any score event
+    const gamesWithUnmatchedGame: Game[] = [
+      {
+        home: "KC",
+        away: "BUF",
+        picks: [
+          { player: "Nick", pick: "KC" },
+          { player: "Adam", pick: "BUF" },
+        ],
+      } as Game,
+      {
+        home: "SF", // No matching score event
+        away: "DAL",
+        picks: [
+          { player: "Nick", pick: "SF" },
+          { player: "Adam", pick: "DAL" },
+        ],
+      } as Game,
+    ];
+
+    const result = calculateAllPlayersScores(gamesWithUnmatchedGame, mockScoresResponse);
+    // Nick picked KC (correct) for the matched game, SF game is skipped
+    const nickScore = result.find((p) => p[0] === "Nick");
+    expect(nickScore![1]).toBe(1);
+  });
+});
+
+describe("getAwayScore edge cases", () => {
+  it("returns 0 when away team is not found", () => {
+    const eventWithNoAwayTeam: ESPNEvent = {
+      competitions: [
+        {
+          competitors: [
+            { homeAway: "home", score: "27" },
+            // No away team
+          ],
+        },
+      ],
+    } as ESPNEvent;
+    expect(getAwayScore(eventWithNoAwayTeam)).toBe(0);
+  });
+});
+
+describe("getHomeScore edge cases", () => {
+  it("returns 0 when home team is not found", () => {
+    const eventWithNoHomeTeam: ESPNEvent = {
+      competitions: [
+        {
+          competitors: [
+            { homeAway: "away", score: "24" },
+            // No home team
+          ],
+        },
+      ],
+    } as ESPNEvent;
+    expect(getHomeScore(eventWithNoHomeTeam)).toBe(0);
   });
 });

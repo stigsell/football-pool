@@ -1,29 +1,38 @@
 import * as XLSX from "xlsx";
 import { Game, Pick } from "../types";
+import { Player, RickTeamCode } from "../utils/constants";
 
-interface ExcelRow {
-  [key: string]: string | number;
+export interface ExcelRow {
+  [key: string]: string | number | undefined;
 }
 
 const getKey = (weekNum: number): string => "WK " + weekNum;
 
 const getPicks = (game: ExcelRow, weekNum: number): Pick[] => {
-  // delete game[getKey(weekNum)];  // TODO fix this
-  console.log(game);
   const picks: Pick[] = [];
   for (const key in game) {
-    picks.push({ player: key, pick: (game[key] as string).toUpperCase().trim() });
+    if (key === getKey(weekNum)) continue; // Skip the week key
+    const value = game[key];
+    if (typeof value === 'string') {
+      picks.push({
+        player: key as Player,
+        pick: value.toUpperCase().trim() as RickTeamCode
+      });
+    }
   }
-  picks.shift(); // shift() to remove first element of array because it is a parsing error "WK ##"
   return picks;
 };
 
 export const parseFile = (data: ExcelRow[], weekNum: number): Game[] => {
   const games: Game[] = [];
-  for (var i = 0; i < data.length - 1; i += 2) {
+  for (let i = 0; i < data.length - 1; i += 2) {
+    const awayValue = data[i][getKey(weekNum)];
+    const homeValue = data[i + 1][getKey(weekNum)];
+    if (typeof awayValue !== 'string' || typeof homeValue !== 'string') continue;
+
     const game: Game = {
-      away: data[i][getKey(weekNum)] as string,
-      home: data[i + 1][getKey(weekNum)] as string,
+      away: awayValue as RickTeamCode,
+      home: homeValue as RickTeamCode,
       picks: getPicks(data[i + 1], weekNum),
     };
     games.push(game);

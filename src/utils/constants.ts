@@ -15,7 +15,10 @@ export const PLAYERS = [
   "Jake",
 ] as const;
 
-export const RICK_TO_ESPN = [
+// Derive Player type from the PLAYERS array
+export type Player = typeof PLAYERS[number];
+
+const RICK_TO_ESPN_ENTRIES = [
   ["ATL", "ATL"],
   ["AZ", "ARI"],
   ["BALT", "BAL"],
@@ -50,37 +53,15 @@ export const RICK_TO_ESPN = [
   ["WASH", "WSH"],
 ] as const;
 
-export const ESPN_TO_RICK = [
-  ["ATL", "ATL"],
-  ["ARI", "AZ"],
-  ["BAL", "BALT"],
-  ["BUF", "BUF"],
-  ["CAR", "CAR"],
-  ["CHI", "CHIC"],
-  ["CLE", "CLEV"],
-  ["CIN", "CN"],
-  ["DAL", "DAL"],
-  ["DEN", "DEN"],
-  ["DET", "DET"],
-  ["GB", "GB"],
-  ["NYG", "GIA"],
-  ["HOU", "HOU"],
-  ["IND", "INDY"],
-  ["JAX", "JAX"],
-  ["NYJ", "JETS"],
-  ["KC", "KC"],
-  ["LAC", "CHRGERS"],
-  ["LAR", "RAMS"],
-  ["LV", "LV"],
-  ["MIA", "MIA"],
-  ["MIN", "MN"],
-  ["NE", "NE"],
-  ["NO", "NO"],
-  ["PIT", "PITT"],
-  ["PHI", "PHIL"],
-  ["SEA", "SEAT"],
-  ["SF", "SF"],
-  ["TB", "TB"],
-  ["TEN", "TN"],
-  ["WSH", "WASH"],
-] as const;
+// Derive team code types from the mapping arrays
+export type RickTeamCode = typeof RICK_TO_ESPN_ENTRIES[number][0];
+export type ESPNTeamCode = typeof RICK_TO_ESPN_ENTRIES[number][1];
+
+// Type-safe Maps for O(1) lookups
+export const RICK_TO_ESPN_MAP = new Map<RickTeamCode, ESPNTeamCode>(
+  RICK_TO_ESPN_ENTRIES.map(([rick, espn]) => [rick, espn])
+);
+
+export const ESPN_TO_RICK_MAP = new Map<ESPNTeamCode, RickTeamCode>(
+  RICK_TO_ESPN_ENTRIES.map(([rick, espn]) => [espn, rick])
+);

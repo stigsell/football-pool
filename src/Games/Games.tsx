@@ -19,11 +19,14 @@ function Games({ games, scores }: GamesProps) {
   const [showCompletedGames, setShowCompletedGames] = useState(false);
   const [showUnanimousGames, setShowUnanimousGames] = useState(false);
 
+  if (!scores) return null;
+
   const filteredByCompleted = showCompletedGames
     ? games
-    : games.filter(
-        (game) => !getGame(game.home, game.away, scores!)!.status.type.completed
-      );
+    : games.filter((game) => {
+        const event = getGame(game.home, game.away, scores);
+        return event ? !event.status.type.completed : true;
+      });
 
   const filteredByUnanimousAndCompleted = showUnanimousGames
     ? filteredByCompleted
@@ -51,7 +54,8 @@ function Games({ games, scores }: GamesProps) {
         <label htmlFor="showUnanimousGames">Show Unanimous Games</label>
       </div>
       {filteredByUnanimousAndCompleted.map((game) => {
-        const score = checkScore(game, scores!);
+        const score = checkScore(game, scores);
+        if (!score) return null;
 
         return (
           <div className="Game" key={game.home + game.away}>
@@ -62,7 +66,7 @@ function Games({ games, scores }: GamesProps) {
                     <b>{game.away}</b>
                   </td>
                   <td>
-                    <b>{checkScore(game, scores!)["status"]}</b>
+                    <b>{score.status}</b>
                   </td>
                   <td>
                     <b>{game.home}</b>
@@ -72,10 +76,7 @@ function Games({ games, scores }: GamesProps) {
                   <td></td>
                   <td>
                     <b>
-                      {formatTwoScores(
-                        score["away_score"],
-                        score["home_score"]
-                      )}
+                      {formatTwoScores(score.away_score, score.home_score)}
                     </b>
                   </td>
                   <td></td>
