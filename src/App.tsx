@@ -8,7 +8,7 @@ import Games from "./Games/Games";
 import SeasonResults from "./SeasonResults/SeasonResults";
 
 import "./App.css";
-import { Game, PlayersProjectedMNFPoints } from "./types";
+import type { Game, PlayersProjectedMNFPoints } from "./types";
 
 function App() {
   const [inputFile, setInputFile] = useState<string | null>(null);

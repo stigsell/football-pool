@@ -1,6 +1,6 @@
 import { getAwayScore, getHomeScore } from "./scoreUtils";
-import { Player } from "./constants";
-import { ESPNEvent, PlayerScoreTuple, PlayersProjectedMNFPoints } from "../types";
+import type { Player } from "./constants";
+import type { ESPNEvent, PlayerScoreTuple, PlayersProjectedMNFPoints } from "../types";
 
 export const getWinners = (allPlayersScores: PlayerScoreTuple[]): Player[] => {
   const highScore = allPlayersScores[0][1];

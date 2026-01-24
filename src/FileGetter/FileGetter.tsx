@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { parseFile } from "./utils";
 import * as XLSX from "xlsx";
-import { Game, PlayersProjectedMNFPoints } from "../types";
+import type { Game, PlayersProjectedMNFPoints } from "../types";
 
 interface FileGetterProps {
   file: string | null;
@@ -12,7 +12,7 @@ interface FileGetterProps {
 }
 
 function FileGetter({
-  file,
+  file: _file,
   setFile,
   setGames,
   setWeekNum,
