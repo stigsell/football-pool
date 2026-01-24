@@ -19,7 +19,11 @@ import {
   mockScoresResponseWithIncomplete,
   mockGames,
 } from "../__mocks__/testData";
-import { ESPNScoresResponse } from "../types";
+import { ESPNScoresResponse, Pick } from "../types";
+import { Player, RickTeamCode } from "./constants";
+
+// Helper to create typed picks
+const pick = (player: Player, team: RickTeamCode): Pick => ({ player, pick: team });
 
 describe("isGameInProgress", () => {
   it("returns true for 'In Progress' status", () => {
@@ -88,32 +92,32 @@ describe("getHomeTeam", () => {
 describe("isGameUnanimous", () => {
   it("returns true when all picks are the same", () => {
     const unanimousPicks = [
-      { player: "Nick", pick: "KC" },
-      { player: "Adam", pick: "KC" },
-      { player: "Alex", pick: "KC" },
+      pick("Nick", "KC"),
+      pick("Adam", "KC"),
+      pick("Alex", "KC"),
     ];
     expect(isGameUnanimous(unanimousPicks)).toBe(true);
   });
 
   it("returns false when picks are mixed", () => {
     const mixedPicks = [
-      { player: "Nick", pick: "KC" },
-      { player: "Adam", pick: "BUF" },
-      { player: "Alex", pick: "KC" },
+      pick("Nick", "KC"),
+      pick("Adam", "BUF"),
+      pick("Alex", "KC"),
     ];
     expect(isGameUnanimous(mixedPicks)).toBe(false);
   });
 
   it("returns true for single pick", () => {
-    const singlePick = [{ player: "Nick", pick: "KC" }];
+    const singlePick = [pick("Nick", "KC")];
     expect(isGameUnanimous(singlePick)).toBe(true);
   });
 
   it("returns false when only one different pick", () => {
     const almostUnanimous = [
-      { player: "Nick", pick: "KC" },
-      { player: "Adam", pick: "KC" },
-      { player: "Alex", pick: "BUF" },
+      pick("Nick", "KC"),
+      pick("Adam", "KC"),
+      pick("Alex", "BUF"),
     ];
     expect(isGameUnanimous(almostUnanimous)).toBe(false);
   });
@@ -122,8 +126,8 @@ describe("isGameUnanimous", () => {
 describe("getMNFGame", () => {
   it("returns the latest game by date", () => {
     const mnfGame = getMNFGame(mockScoresResponse);
-    expect(mnfGame.shortName).toBe("BUF @ KC");
-    expect(mnfGame.date).toBe("2025-01-20T00:15Z");
+    expect(mnfGame?.shortName).toBe("BUF @ KC");
+    expect(mnfGame?.date).toBe("2025-01-20T00:15Z");
   });
 
   it("handles multiple games with correct sorting", () => {
@@ -135,7 +139,7 @@ describe("getMNFGame", () => {
       ],
     };
     const mnfGame = getMNFGame(multipleGames);
-    expect(mnfGame.shortName).toBe("Game3");
+    expect(mnfGame?.shortName).toBe("Game3");
   });
 
   it("returns the only game when there is just one", () => {
@@ -143,7 +147,13 @@ describe("getMNFGame", () => {
       events: [{ shortName: "OnlyGame", date: "2025-01-19T13:00Z" } as any],
     };
     const mnfGame = getMNFGame(singleGame);
-    expect(mnfGame.shortName).toBe("OnlyGame");
+    expect(mnfGame?.shortName).toBe("OnlyGame");
+  });
+
+  it("returns undefined for empty events array", () => {
+    const emptyEvents: ESPNScoresResponse = { events: [] };
+    const mnfGame = getMNFGame(emptyEvents);
+    expect(mnfGame).toBeUndefined();
   });
 });
 
@@ -172,7 +182,8 @@ describe("getGame", () => {
   });
 
   it("returns undefined for invalid team code (tests convertRickToESPN null branch)", () => {
-    const game = getGame("INVALID", "BUF", mockScoresResponse);
+    // Using type assertion to test runtime behavior with invalid input
+    const game = getGame("INVALID" as RickTeamCode, "BUF", mockScoresResponse);
     expect(game).toBeUndefined();
   });
 
@@ -335,10 +346,116 @@ describe("areAllNonUnanimousGamesFinished", () => {
         },
       ],
     };
-    // This should handle the null gracefully - the game won't be found in games array
-    // and won't be included in non-unanimous check
-    expect(() =>
-      areAllNonUnanimousGamesFinished(scoresWithUnknownTeam, mockGames)
-    ).toThrow();
+    // With proper null handling, unknown teams are filtered out gracefully
+    // and the function returns true (no non-unanimous games found)
+    expect(areAllNonUnanimousGamesFinished(scoresWithUnknownTeam, mockGames)).toBe(true);
+  });
+
+  it("filters out events when getGame returns undefined (line 60)", () => {
+    // Create a score event with valid ESPN codes that can be converted to Rick codes,
+    // but then getGame won't find a matching event (swapped home/away)
+    const scoresWithMismatchedGame: ESPNScoresResponse = {
+      events: [
+        {
+          shortName: "KC @ BUF", // Reversed - KC away, BUF home
+          date: "2025-01-20T00:15Z",
+          status: {
+            type: { description: "Final", completed: true },
+            period: 4,
+            displayClock: "0:00",
+          },
+          competitions: [
+            {
+              competitors: [
+                { homeAway: "home", score: "27" },
+                { homeAway: "away", score: "24" },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    // getGame(BUF, KC, scores) won't find "KC @ BUF" because it looks for "KC @ BUF"
+    // but the shortName is reversed, so matchedEvent is undefined
+    expect(areAllNonUnanimousGamesFinished(scoresWithMismatchedGame, mockGames)).toBe(true);
+  });
+
+  it("filters out events when game is not in games array (line 62-63)", () => {
+    // Create scores with a valid game that exists in ESPN but not in our games array
+    const scoresWithExtraGame: ESPNScoresResponse = {
+      events: [
+        {
+          shortName: "SF @ DAL",
+          date: "2025-01-20T00:15Z",
+          status: {
+            type: { description: "Final", completed: true },
+            period: 4,
+            displayClock: "0:00",
+          },
+          competitions: [
+            {
+              competitors: [
+                { homeAway: "home", score: "27" },
+                { homeAway: "away", score: "24" },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    // SF @ DAL exists in scores but not in mockGames, so getGameFromEvent returns undefined
+    expect(areAllNonUnanimousGamesFinished(scoresWithExtraGame, mockGames)).toBe(true);
+  });
+
+  it("filters when only away team code is invalid (line 27 branch)", () => {
+    // XXX is invalid, KC is valid - tests the !rick_away branch
+    const scoresWithInvalidAway: ESPNScoresResponse = {
+      events: [
+        {
+          shortName: "XXX @ KC",
+          date: "2025-01-20T00:15Z",
+          status: {
+            type: { description: "Final", completed: true },
+            period: 4,
+            displayClock: "0:00",
+          },
+          competitions: [
+            {
+              competitors: [
+                { homeAway: "home", score: "27" },
+                { homeAway: "away", score: "24" },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    expect(areAllNonUnanimousGamesFinished(scoresWithInvalidAway, mockGames)).toBe(true);
+  });
+
+  it("filters when only home team code is invalid (line 27 branch)", () => {
+    // BUF is valid, YYY is invalid - tests the !rick_home branch
+    const scoresWithInvalidHome: ESPNScoresResponse = {
+      events: [
+        {
+          shortName: "BUF @ YYY",
+          date: "2025-01-20T00:15Z",
+          status: {
+            type: { description: "Final", completed: true },
+            period: 4,
+            displayClock: "0:00",
+          },
+          competitions: [
+            {
+              competitors: [
+                { homeAway: "home", score: "27" },
+                { homeAway: "away", score: "24" },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    expect(areAllNonUnanimousGamesFinished(scoresWithInvalidHome, mockGames)).toBe(true);
   });
 });

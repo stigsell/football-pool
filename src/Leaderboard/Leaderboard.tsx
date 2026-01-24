@@ -18,31 +18,29 @@ interface LeaderboardProps {
 }
 
 function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardProps) {
-  const allPlayersScores = calculateAllPlayersScores(games, scores!);
+  const { width, height } = useWindowSize();
 
+  if (!scores) return null;
+
+  const allPlayersScores = calculateAllPlayersScores(games, scores);
   const highScore = allPlayersScores[0][1];
+  const gamesRemaining = getNumberOfGamesRemaining(scores);
+  const allGamesFinished = areAllGamesFinished(scores, games);
 
-  getNumberOfGamesRemaining(scores!);
-
-  const potentialWinners = areAllGamesFinished(scores!, games)
+  const potentialWinners = allGamesFinished
     ? getWinners(allPlayersScores)
     : [];
 
+  const mnfGame = getMNFGame(scores);
   const winners =
-    potentialWinners.length > 0
-      ? getTiebreakWinners(
-          getMNFGame(scores!),
-          potentialWinners,
-          playersProjectedMNFPoints
-        )
+    potentialWinners.length > 0 && mnfGame
+      ? getTiebreakWinners(mnfGame, potentialWinners, playersProjectedMNFPoints)
       : potentialWinners;
-
-  const { width, height } = useWindowSize();
 
   return (
     <>
       <h2>Leaderboard</h2>
-      {areAllGamesFinished(scores!, games) && (
+      {allGamesFinished && (
         <Confetti
           width={width}
           height={height}
@@ -70,14 +68,9 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardPr
             {allPlayersScores.map((score) => (
               <tr key={score[0]}>
                 <td>
-                  {winners.includes(score[0]) &&
-                    areAllGamesFinished(scores!, games) &&
-                    "🏆"}
-                  {isPlayerEliminated(
-                    highScore,
-                    score[1],
-                    getNumberOfGamesRemaining(scores!)
-                  ) && "❌"}
+                  {winners.includes(score[0]) && allGamesFinished && "🏆"}
+                  {isPlayerEliminated(highScore, score[1], gamesRemaining) &&
+                    "❌"}
                 </td>
                 <td>{score[0]}</td>
                 <td>{score[1]}</td>

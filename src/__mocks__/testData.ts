@@ -1,4 +1,5 @@
-import { ESPNEvent, ESPNScoresResponse, Game, PlayerScoreTuple, PlayersProjectedMNFPoints } from "../types";
+import { ESPNEvent, ESPNScoresResponse, Game, PlayerScoreTuple, PlayersProjectedMNFPoints, Pick } from "../types";
+import { Player, RickTeamCode } from "../utils/constants";
 
 // Mock ESPN API event structure
 export const mockEvent: ESPNEvent = {
@@ -186,57 +187,60 @@ export const mockScoresResponseWithIncomplete: ESPNScoresResponse = {
   ],
 };
 
+// Helper to create a typed pick
+const pick = (player: Player, team: RickTeamCode): Pick => ({ player, pick: team });
+
 // Mock games array (parsed from Excel)
 export const mockGames: Game[] = [
   {
     home: "KC",
     away: "BUF",
     picks: [
-      { player: "Nick", pick: "KC" },
-      { player: "Adam", pick: "BUF" },
-      { player: "Alex", pick: "KC" },
-      { player: "Ben", pick: "KC" },
-      { player: "Kylee", pick: "BUF" },
-      { player: "Rick", pick: "KC" },
-      { player: "Ricky", pick: "KC" },
-      { player: "Tammy", pick: "BUF" },
-      { player: "Connor", pick: "KC" },
-      { player: "Noah", pick: "KC" },
-      { player: "Jake", pick: "KC" },
+      pick("Nick", "KC"),
+      pick("Adam", "BUF"),
+      pick("Alex", "KC"),
+      pick("Ben", "KC"),
+      pick("Kylee", "BUF"),
+      pick("Rick", "KC"),
+      pick("Ricky", "KC"),
+      pick("Tammy", "BUF"),
+      pick("Connor", "KC"),
+      pick("Noah", "KC"),
+      pick("Jake", "KC"),
     ],
   },
   {
     home: "NE",
     away: "MIA",
     picks: [
-      { player: "Nick", pick: "MIA" },
-      { player: "Adam", pick: "MIA" },
-      { player: "Alex", pick: "MIA" },
-      { player: "Ben", pick: "MIA" },
-      { player: "Kylee", pick: "MIA" },
-      { player: "Rick", pick: "MIA" },
-      { player: "Ricky", pick: "MIA" },
-      { player: "Tammy", pick: "MIA" },
-      { player: "Connor", pick: "MIA" },
-      { player: "Noah", pick: "MIA" },
-      { player: "Jake", pick: "MIA" },
+      pick("Nick", "MIA"),
+      pick("Adam", "MIA"),
+      pick("Alex", "MIA"),
+      pick("Ben", "MIA"),
+      pick("Kylee", "MIA"),
+      pick("Rick", "MIA"),
+      pick("Ricky", "MIA"),
+      pick("Tammy", "MIA"),
+      pick("Connor", "MIA"),
+      pick("Noah", "MIA"),
+      pick("Jake", "MIA"),
     ],
   },
   {
     home: "DET",
     away: "CHIC",
     picks: [
-      { player: "Nick", pick: "DET" },
-      { player: "Adam", pick: "DET" },
-      { player: "Alex", pick: "CHIC" },
-      { player: "Ben", pick: "DET" },
-      { player: "Kylee", pick: "DET" },
-      { player: "Rick", pick: "DET" },
-      { player: "Ricky", pick: "DET" },
-      { player: "Tammy", pick: "DET" },
-      { player: "Connor", pick: "DET" },
-      { player: "Noah", pick: "DET" },
-      { player: "Jake", pick: "DET" },
+      pick("Nick", "DET"),
+      pick("Adam", "DET"),
+      pick("Alex", "CHIC"),
+      pick("Ben", "DET"),
+      pick("Kylee", "DET"),
+      pick("Rick", "DET"),
+      pick("Ricky", "DET"),
+      pick("Tammy", "DET"),
+      pick("Connor", "DET"),
+      pick("Noah", "DET"),
+      pick("Jake", "DET"),
     ],
   },
 ];
@@ -247,9 +251,9 @@ export const mockGamesUnanimous: Game[] = [
     home: "NE",
     away: "MIA",
     picks: [
-      { player: "Nick", pick: "MIA" },
-      { player: "Adam", pick: "MIA" },
-      { player: "Alex", pick: "MIA" },
+      pick("Nick", "MIA"),
+      pick("Adam", "MIA"),
+      pick("Alex", "MIA"),
     ],
   },
 ];
@@ -260,41 +264,41 @@ export const mockGamesMixed: Game[] = [
     home: "KC",
     away: "BUF",
     picks: [
-      { player: "Nick", pick: "KC" },
-      { player: "Adam", pick: "BUF" },
-      { player: "Alex", pick: "KC" },
+      pick("Nick", "KC"),
+      pick("Adam", "BUF"),
+      pick("Alex", "KC"),
     ],
   },
 ];
 
 // Mock player scores array (sorted high to low)
 export const mockPlayersScores: PlayerScoreTuple[] = [
-  ["Nick", 10],
-  ["Adam", 9],
-  ["Alex", 9],
-  ["Ben", 8],
-  ["Kylee", 8],
-  ["Rick", 7],
-  ["Ricky", 7],
-  ["Tammy", 6],
-  ["Connor", 5],
-  ["Noah", 4],
-  ["Jake", 3],
+  ["Nick" as Player, 10],
+  ["Adam" as Player, 9],
+  ["Alex" as Player, 9],
+  ["Ben" as Player, 8],
+  ["Kylee" as Player, 8],
+  ["Rick" as Player, 7],
+  ["Ricky" as Player, 7],
+  ["Tammy" as Player, 6],
+  ["Connor" as Player, 5],
+  ["Noah" as Player, 4],
+  ["Jake" as Player, 3],
 ];
 
 // Mock player scores with tie at top
 export const mockPlayersScoresTied: PlayerScoreTuple[] = [
-  ["Nick", 10],
-  ["Adam", 10],
-  ["Alex", 10],
-  ["Ben", 8],
+  ["Nick" as Player, 10],
+  ["Adam" as Player, 10],
+  ["Alex" as Player, 10],
+  ["Ben" as Player, 8],
 ];
 
 // Mock player scores with single winner
 export const mockPlayersScoresSingleWinner: PlayerScoreTuple[] = [
-  ["Nick", 12],
-  ["Adam", 10],
-  ["Alex", 9],
+  ["Nick" as Player, 12],
+  ["Adam" as Player, 10],
+  ["Alex" as Player, 9],
 ];
 
 // Mock MNF projected points per player

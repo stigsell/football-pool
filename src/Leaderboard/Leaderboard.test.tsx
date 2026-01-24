@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import Leaderboard from "./Leaderboard";
 import { Game, ESPNScoresResponse, PlayersProjectedMNFPoints, Pick } from "../types";
+import { PLAYERS, Player, RickTeamCode } from "../utils/constants";
 
 // Mock external libraries (not internal components)
 jest.mock("react-confetti", () => {
@@ -16,25 +17,24 @@ jest.mock("react-use/lib/useWindowSize", () => {
 
 describe("Leaderboard", () => {
   // Helper to create player picks for all 11 players
-  const createPicks = (pickFn: (player: string) => string): Pick[] =>
-    ["Adam", "Alex", "Ben", "Kylee", "Nick", "Rick", "Ricky", "Tammy", "Connor", "Noah", "Jake"]
-      .map((player) => ({ player, pick: pickFn(player) }));
+  const createPicks = (pickFn: (player: Player) => RickTeamCode): Pick[] =>
+    PLAYERS.map((player) => ({ player, pick: pickFn(player) }));
 
   const mockGames: Game[] = [
     {
       home: "KC",
       away: "BUF",
-      picks: createPicks((p) => (["Adam", "Kylee", "Tammy"].includes(p) ? "BUF" : "KC")),
+      picks: createPicks((p) => (["Adam", "Kylee", "Tammy"].includes(p) ? "BUF" : "KC") as RickTeamCode),
     },
     {
       home: "NE",
       away: "MIA",
-      picks: createPicks(() => "MIA"),
+      picks: createPicks(() => "MIA" as RickTeamCode),
     },
     {
       home: "DET",
       away: "CHIC",
-      picks: createPicks((p) => (p === "Alex" ? "CHIC" : "DET")),
+      picks: createPicks((p) => (p === "Alex" ? "CHIC" : "DET") as RickTeamCode),
     },
   ];
 
@@ -189,5 +189,16 @@ describe("Leaderboard", () => {
     const { container } = renderLeaderboard();
     expect(container.querySelector(".Leaderboard")).toBeInTheDocument();
     expect(container.querySelector(".Leaderboard__table")).toBeInTheDocument();
+  });
+
+  it("returns null when scores is undefined", () => {
+    const { container } = render(
+      <Leaderboard
+        games={mockGames}
+        scores={undefined}
+        playersProjectedMNFPoints={mockProjectedMNFPoints}
+      />
+    );
+    expect(container.firstChild).toBeNull();
   });
 });

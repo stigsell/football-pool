@@ -9,6 +9,7 @@ import {
   mockPlayersScoresSingleWinner,
 } from "../__mocks__/testData";
 import { ESPNEvent, PlayerScoreTuple, PlayersProjectedMNFPoints } from "../types";
+import { Player } from "./constants";
 
 describe("getWinners", () => {
   it("returns single winner when one player has highest score", () => {
@@ -19,9 +20,9 @@ describe("getWinners", () => {
 
   it("returns multiple winners for two-way tie", () => {
     const twoWayTie: PlayerScoreTuple[] = [
-      ["Nick", 10],
-      ["Adam", 10],
-      ["Alex", 8],
+      ["Nick" as Player, 10],
+      ["Adam" as Player, 10],
+      ["Alex" as Player, 8],
     ];
     const winners = getWinners(twoWayTie);
     expect(winners).toEqual(["Nick", "Adam"]);
@@ -40,16 +41,16 @@ describe("getWinners", () => {
   });
 
   it("handles single player array", () => {
-    const singlePlayer: PlayerScoreTuple[] = [["Nick", 5]];
+    const singlePlayer: PlayerScoreTuple[] = [["Nick" as Player, 5]];
     const winners = getWinners(singlePlayer);
     expect(winners).toEqual(["Nick"]);
   });
 
   it("returns all players if all have same score", () => {
     const allTied: PlayerScoreTuple[] = [
-      ["Nick", 7],
-      ["Adam", 7],
-      ["Alex", 7],
+      ["Nick" as Player, 7],
+      ["Adam" as Player, 7],
+      ["Alex" as Player, 7],
     ];
     const winners = getWinners(allTied);
     expect(winners).toEqual(["Nick", "Adam", "Alex"]);
@@ -75,7 +76,7 @@ describe("getTiebreakWinners", () => {
       Adam: 45,
       Alex: 55,
     };
-    const winners = ["Nick", "Adam", "Alex"];
+    const winners: Player[] = ["Nick", "Adam", "Alex"];
     const result = getTiebreakWinners(mnfGame, winners, projectedPoints);
     expect(result).toEqual(["Nick"]);
   });
@@ -86,7 +87,7 @@ describe("getTiebreakWinners", () => {
       Adam: 45, // 6 away
       Alex: 55, // 4 away
     };
-    const winners = ["Nick", "Adam", "Alex"];
+    const winners: Player[] = ["Nick", "Adam", "Alex"];
     const result = getTiebreakWinners(mnfGame, winners, projectedPoints);
     expect(result).toEqual(["Nick"]);
   });
@@ -97,7 +98,7 @@ describe("getTiebreakWinners", () => {
       Adam: 52, // 1 away (also closest)
       Alex: 55, // 4 away
     };
-    const winners = ["Nick", "Adam", "Alex"];
+    const winners: Player[] = ["Nick", "Adam", "Alex"];
     const result = getTiebreakWinners(mnfGame, winners, projectedPoints);
     expect(result).toEqual(["Nick", "Adam"]);
   });
@@ -107,7 +108,7 @@ describe("getTiebreakWinners", () => {
       Nick: 48, // 3 away
       Adam: 54, // 3 away
     };
-    const winners = ["Nick", "Adam"];
+    const winners: Player[] = ["Nick", "Adam"];
     const result = getTiebreakWinners(mnfGame, winners, projectedPoints);
     expect(result).toEqual(["Nick", "Adam"]);
   });
@@ -116,7 +117,7 @@ describe("getTiebreakWinners", () => {
     const projectedPoints: PlayersProjectedMNFPoints = {
       Nick: 45,
     };
-    const winners = ["Nick"];
+    const winners: Player[] = ["Nick"];
     const result = getTiebreakWinners(mnfGame, winners, projectedPoints);
     expect(result).toEqual(["Nick"]);
   });
@@ -127,7 +128,7 @@ describe("getTiebreakWinners", () => {
       Adam: 61, // 10 over
       Alex: 50, // 1 under (closest)
     };
-    const winners = ["Nick", "Adam", "Alex"];
+    const winners: Player[] = ["Nick", "Adam", "Alex"];
     const result = getTiebreakWinners(mnfGame, winners, projectedPoints);
     expect(result).toEqual(["Alex"]);
   });
@@ -147,9 +148,29 @@ describe("getTiebreakWinners", () => {
       Nick: 85, // 2 away from 87
       Adam: 90, // 3 away
     };
-    const winners = ["Nick", "Adam"];
+    const winners: Player[] = ["Nick", "Adam"];
     const result = getTiebreakWinners(highScoringGame, winners, projectedPoints);
     expect(result).toEqual(["Nick"]);
+  });
+
+  it("skips players without projected points", () => {
+    const projectedPoints: PlayersProjectedMNFPoints = {
+      Nick: 51, // Exact match
+      // Adam has no projected points
+      Alex: 55,
+    };
+    const winners: Player[] = ["Nick", "Adam", "Alex"];
+    const result = getTiebreakWinners(mnfGame, winners, projectedPoints);
+    // Adam is skipped, Nick wins with exact match
+    expect(result).toEqual(["Nick"]);
+  });
+
+  it("returns all winners when no one has projected points", () => {
+    const projectedPoints: PlayersProjectedMNFPoints = {};
+    const winners: Player[] = ["Nick", "Adam", "Alex"];
+    const result = getTiebreakWinners(mnfGame, winners, projectedPoints);
+    // No projected points for anyone, so return all winners
+    expect(result).toEqual(["Nick", "Adam", "Alex"]);
   });
 });
 

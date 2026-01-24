@@ -23,14 +23,6 @@ jest.mock("react-use/lib/useWindowSize", () => {
 
 const mockedXLSX = XLSX as jest.Mocked<typeof XLSX>;
 
-// Suppress console.log from source code
-const originalConsoleLog = console.log;
-beforeAll(() => {
-  console.log = jest.fn();
-});
-afterAll(() => {
-  console.log = originalConsoleLog;
-});
 
 describe("App", () => {
   // Must include all 11 players from constants.js

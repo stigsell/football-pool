@@ -6,14 +6,6 @@ import { ESPNScoresResponse } from "../types";
 // Mock the fetch API
 global.fetch = jest.fn();
 
-// Mock console.log to avoid noise in tests
-const originalConsoleLog = console.log;
-beforeAll(() => {
-  console.log = jest.fn();
-});
-afterAll(() => {
-  console.log = originalConsoleLog;
-});
 
 describe("ScoreFetcher", () => {
   beforeEach(() => {

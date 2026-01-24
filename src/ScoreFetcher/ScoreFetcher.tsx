@@ -16,7 +16,6 @@ function ScoreFetcher({ children, weekNumber }: ScoreFetcherProps) {
         return res.json();
       })
       .then((data: ESPNScoresResponse) => {
-        console.log("data", data);
         setScores(data);
       });
   }, [weekNumber]);

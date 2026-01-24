@@ -95,6 +95,56 @@ describe("parseFile", () => {
     expect(games[0].away).toBe("SF");
     expect(games[0].home).toBe("SEA");
   });
+
+  it("skips non-string values in picks (line 16)", () => {
+    const data = [
+      { "WK 1": "BUF", Nick: "buf", Adam: 123 }, // Adam has number value
+      { "WK 1": "KC", Nick: "kc", Adam: 456 },   // Adam has number value
+      { Nick: 45, Adam: 50 },
+    ];
+
+    const games = parseFile(data, 1);
+
+    // Only Nick's pick should be included (Adam's value is a number, not string)
+    expect(games[0].picks).toHaveLength(1);
+    expect(games[0].picks[0].player).toBe("Nick");
+  });
+
+  it("skips rows where team value is not a string (lines 29-31)", () => {
+    const data = [
+      { "WK 1": 123, Nick: "buf" },     // away team is number
+      { "WK 1": "KC", Nick: "kc" },     // home team is string
+      { "WK 1": "MIA", Nick: "mia" },   // Valid game starts here
+      { "WK 1": "NE", Nick: "ne" },
+      { Nick: 45 },
+    ];
+
+    const games = parseFile(data, 1);
+
+    // First pair has number for away, should be skipped
+    // Second pair (MIA @ NE) should be valid
+    expect(games).toHaveLength(1);
+    expect(games[0].away).toBe("MIA");
+    expect(games[0].home).toBe("NE");
+  });
+
+  it("skips pairs where home team value is not a string", () => {
+    const data = [
+      { "WK 1": "BUF", Nick: "buf" },   // away team is string
+      { "WK 1": undefined, Nick: "kc" }, // home team is undefined
+      { "WK 1": "DEN", Nick: "den" },
+      { "WK 1": "LV", Nick: "lv" },
+      { Nick: 45 },
+    ];
+
+    const games = parseFile(data, 1);
+
+    // First pair has undefined for home, should be skipped
+    // Second pair (DEN @ LV) should be valid
+    expect(games).toHaveLength(1);
+    expect(games[0].away).toBe("DEN");
+    expect(games[0].home).toBe("LV");
+  });
 });
 
 describe("readFile", () => {

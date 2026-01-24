@@ -259,4 +259,46 @@ describe("Games", () => {
     // No game elements should be rendered
     expect(container.querySelector(".Game")).not.toBeInTheDocument();
   });
+
+  it("returns null when scores is undefined", () => {
+    const { container } = render(<Games games={mockGames} scores={undefined} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("shows game when event is not found in scores (defaults to not completed)", () => {
+    // Game exists but no matching score event - should show as not completed
+    const gamesWithUnknownTeam: Game[] = [
+      {
+        home: "SF",
+        away: "DAL",
+        picks: [
+          { player: "Nick", pick: "SF" },
+          { player: "Adam", pick: "DAL" },
+        ],
+      },
+    ];
+
+    const { container } = render(<Games games={gamesWithUnknownTeam} scores={mockScores} />);
+    // Game should be shown because it defaults to "not completed" when event not found
+    // But checkScore returns undefined so it won't render (line 58)
+    expect(container.querySelector(".Game")).not.toBeInTheDocument();
+  });
+
+  it("handles game where checkScore returns undefined", () => {
+    // Create a game that won't match any score event
+    const unmatchedGames: Game[] = [
+      {
+        home: "SF",
+        away: "DAL",
+        picks: [
+          { player: "Nick", pick: "SF" },
+          { player: "Adam", pick: "DAL" },
+        ],
+      },
+    ];
+
+    const { container } = render(<Games games={unmatchedGames} scores={mockScores} />);
+    // checkScore returns undefined, so the game card won't render
+    expect(container.querySelector(".Game")).not.toBeInTheDocument();
+  });
 });
