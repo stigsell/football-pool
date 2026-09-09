@@ -20,7 +20,7 @@ function FileGetter({
 }: FileGetterProps) {
   useEffect(() => {
     async function fetchAndParseExcel() {
-      const weekNum = 18;
+      const weekNum = 1;
       const response = await fetch("/spreadsheets/Week " + weekNum + ";.xlsx");
       const arrayBuffer = await response.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: "array" });

@@ -1,5 +1,5 @@
 export const ESPN_API_URL =
-  "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2025&seasontype=2&week=";
+  "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2026&seasontype=2&week=";
 
 export const PLAYERS = [
   "Adam",
@@ -25,7 +25,7 @@ const RICK_TO_ESPN_ENTRIES = [
   ["BUF", "BUF"],
   ["CAR", "CAR"],
   ["CHIC", "CHI"],
-  ["CHRGERS", "LAC"],
+  ["LAC", "LAC"],
   ["CLEV", "CLE"],
   ["CN", "CIN"],
   ["DAL", "DAL"],

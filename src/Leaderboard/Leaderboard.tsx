@@ -1,13 +1,12 @@
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 
-import { getMNFGame, areAllGamesFinished } from "../utils/gameEventUtils";
+import { getMNFGame, areAllGamesFinished, getNumberOfGamesRemaining } from "../utils/gameEventUtils";
 import {
   getWinners,
   getTiebreakWinners,
   isPlayerEliminated,
 } from "../utils/winnerUtils";
-import { getNumberOfGamesRemaining } from "../utils/gameEventUtils";
 import { calculateAllPlayersScores } from "../utils/scoreUtils";
 import type { Game, ESPNScoresResponse, PlayersProjectedMNFPoints } from "../types";
 
