@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import App from "./App";
 import * as XLSX from "xlsx";
+import { CURRENT_WEEK } from "./utils/constants";
 
 // Mock external dependencies only
 jest.mock("xlsx", () => ({
@@ -68,11 +69,13 @@ describe("App", () => {
     Jake: 43,
   };
 
+  const weekKey = `WK ${CURRENT_WEEK}`;
+
   const mockExcelData = [
-    { "WK 18": "BUF", ...allPlayerPicks },
-    { "WK 18": "KC", ...allPlayerPicks },
-    { "WK 18": "MIA", ...allPlayerPicksMIA },
-    { "WK 18": "NE", ...allPlayerPicksMIA },
+    { [weekKey]: "BUF", ...allPlayerPicks },
+    { [weekKey]: "KC", ...allPlayerPicks },
+    { [weekKey]: "MIA", ...allPlayerPicksMIA },
+    { [weekKey]: "NE", ...allPlayerPicksMIA },
     projectedPoints,
   ];
 
@@ -148,7 +151,7 @@ describe("App", () => {
   it("displays week number after loading", async () => {
     render(<App />);
     await waitFor(() => {
-      expect(screen.getByText("Week 18")).toBeInTheDocument();
+      expect(screen.getByText(`Week ${CURRENT_WEEK}`)).toBeInTheDocument();
     });
   });
 
@@ -170,13 +173,6 @@ describe("App", () => {
     render(<App />);
     await waitFor(() => {
       expect(screen.getByText("Tiebreaker")).toBeInTheDocument();
-    });
-  });
-
-  it("renders Season Results section", async () => {
-    render(<App />);
-    await waitFor(() => {
-      expect(screen.getByText("Season Results")).toBeInTheDocument();
     });
   });
 

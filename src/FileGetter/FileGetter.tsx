@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { parseFile } from "./utils";
 import * as XLSX from "xlsx";
 import type { Game, PlayersProjectedMNFPoints } from "../types";
+import { CURRENT_WEEK } from "../utils/constants";
 
 interface FileGetterProps {
   file: string | null;
@@ -20,7 +21,7 @@ function FileGetter({
 }: FileGetterProps) {
   useEffect(() => {
     async function fetchAndParseExcel() {
-      const weekNum = 1;
+      const weekNum = CURRENT_WEEK;
       const response = await fetch("/spreadsheets/Week " + weekNum + ";.xlsx");
       const arrayBuffer = await response.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: "array" });

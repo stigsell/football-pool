@@ -2,6 +2,7 @@ import React from "react";
 import { render, waitFor } from "@testing-library/react";
 import FileGetter from "./FileGetter";
 import * as XLSX from "xlsx";
+import { CURRENT_WEEK } from "../utils/constants";
 
 // Mock XLSX
 jest.mock("xlsx", () => ({
@@ -34,8 +35,8 @@ describe("FileGetter", () => {
   };
 
   const mockJsonData = [
-    { "WK 18": "BUF", Nick: "buf", Adam: "kc" },
-    { "WK 18": "KC", Nick: "kc", Adam: "kc" },
+    { [`WK ${CURRENT_WEEK}`]: "BUF", Nick: "buf", Adam: "kc" },
+    { [`WK ${CURRENT_WEEK}`]: "KC", Nick: "kc", Adam: "kc" },
     { Nick: 45, Adam: 50 }, // Projected MNF points
   ];
 
@@ -77,7 +78,7 @@ describe("FileGetter", () => {
     );
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith("/spreadsheets/Week 18;.xlsx");
+      expect(fetch).toHaveBeenCalledWith(`/spreadsheets/Week ${CURRENT_WEEK};.xlsx`);
     });
   });
 
@@ -99,7 +100,7 @@ describe("FileGetter", () => {
     );
 
     await waitFor(() => {
-      expect(mockSetWeekNum).toHaveBeenCalledWith(18);
+      expect(mockSetWeekNum).toHaveBeenCalledWith(CURRENT_WEEK);
     });
   });
 
@@ -121,7 +122,7 @@ describe("FileGetter", () => {
     );
 
     await waitFor(() => {
-      expect(mockSetFile).toHaveBeenCalledWith("Week 18;.xlsx");
+      expect(mockSetFile).toHaveBeenCalledWith(`Week ${CURRENT_WEEK};.xlsx`);
     });
   });
 
