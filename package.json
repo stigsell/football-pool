@@ -19,7 +19,9 @@
   "scripts": {
     "predeploy": "npm run test && npm run build && cp CNAME build/CNAME",
     "deploy": "gh-pages -d build",
+    "prestart": "node scripts/check-spreadsheet.js",
     "start": "react-scripts start",
+    "check:spreadsheet": "node scripts/check-spreadsheet.js",
     "build": "react-scripts build",
     "test": "react-scripts test --watchAll=false --coverage --collectCoverageFrom='src/**/*.{js,jsx,ts,tsx}'",
     "eject": "react-scripts eject"
