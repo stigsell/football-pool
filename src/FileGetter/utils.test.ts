@@ -1,5 +1,6 @@
 import { parseFile, readFile } from "./utils";
 import * as XLSX from "xlsx";
+import { LATE_PICK } from "../utils/constants";
 
 // Mock XLSX
 jest.mock("xlsx", () => ({
@@ -43,6 +44,19 @@ describe("parseFile", () => {
     expect(games[0].home).toBe("NE");
     expect(games[1].away).toBe("DEN");
     expect(games[1].home).toBe("LV");
+  });
+
+  it("keeps a late pick marker as its own pick value", () => {
+    const data = [
+      { "WK 4": "BUF", Nick: "buf", Adam: "x" },
+      { "WK 4": "KC", Nick: "kc", Adam: " x " },
+      { Nick: 44, Adam: 44 },
+    ];
+
+    const games = parseFile(data, 4);
+
+    expect(games[0].picks[0].pick).toBe("KC");
+    expect(games[0].picks[1].pick).toBe(LATE_PICK);
   });
 
   it("converts picks to uppercase and trims whitespace", () => {

@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import type { Game, Pick } from "../types";
-import type { Player, RickTeamCode } from "../utils/constants";
+import type { Player, PlayerPick, RickTeamCode } from "../utils/constants";
 
 export interface ExcelRow {
   [key: string]: string | number | undefined;
@@ -16,7 +16,7 @@ const getPicks = (game: ExcelRow, weekNum: number): Pick[] => {
     if (typeof value === 'string') {
       picks.push({
         player: key as Player,
-        pick: value.toUpperCase().trim() as RickTeamCode
+        pick: value.toUpperCase().trim() as PlayerPick
       });
     }
   }

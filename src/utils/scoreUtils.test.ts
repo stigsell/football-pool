@@ -13,7 +13,7 @@ import {
   mockGames,
 } from "../__mocks__/testData";
 import { ESPNEvent, GameScore, Game } from "../types";
-import { RickTeamCode } from "./constants";
+import { LATE_PICK, RickTeamCode } from "./constants";
 
 // Helper to create a typed game with empty picks
 const game = (home: RickTeamCode, away: RickTeamCode): Game => ({ home, away, picks: [] });
@@ -243,6 +243,27 @@ describe("calculateAllPlayersScores", () => {
     const playersWithNickScore = result.filter((p) => p[1] === nickScore);
     // All players with the same score should be adjacent in the sorted list
     expect(playersWithNickScore.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("never credits a late pick, whichever team wins", () => {
+    // KC (home) and MIA (away) both won in mockScoresResponse.
+    const gamesWithLatePicks: Game[] = [
+      {
+        home: "KC",
+        away: "BUF",
+        picks: [{ player: "Nick", pick: LATE_PICK }],
+      },
+      {
+        home: "NE",
+        away: "MIA",
+        picks: [{ player: "Nick", pick: LATE_PICK }],
+      },
+    ];
+
+    const result = calculateAllPlayersScores(gamesWithLatePicks, mockScoresResponse);
+
+    const nickScore = result.find((p) => p[0] === "Nick");
+    expect(nickScore![1]).toBe(0);
   });
 
   it("skips games where checkScore returns undefined", () => {

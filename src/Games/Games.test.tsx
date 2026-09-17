@@ -152,6 +152,31 @@ describe("Games", () => {
     expect(screen.getByText("Alex")).toBeInTheDocument();
   });
 
+  it("marks a late pick with an X next to the player", () => {
+    const gamesWithLatePick: Game[] = [
+      {
+        home: "KC",
+        away: "BUF",
+        picks: [
+          { player: "Nick", pick: "KC" },
+          { player: "Adam", pick: "X" },
+        ],
+      },
+    ];
+
+    const { container } = render(
+      <Games games={gamesWithLatePick} scores={mockScores} />
+    );
+
+    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+
+    const lateCell = screen.getByText("Adam (X)");
+    expect(lateCell).toBeInTheDocument();
+    expect(lateCell).toHaveClass("Game__lose");
+    // The X never shows up in a team column.
+    expect(container.querySelectorAll(".Game__win").length).toBe(1);
+  });
+
   it("applies Game class to game containers", () => {
     const { container } = render(<Games games={mockGames} scores={mockScores} />);
 

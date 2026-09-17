@@ -1,4 +1,4 @@
-import type { Player, RickTeamCode } from "../utils/constants";
+import type { Player, PlayerPick, RickTeamCode } from "../utils/constants";
 
 // Game status union type
 export type GameStatus = 'Final' | 'In Progress' | 'Scheduled' | 'End of Period';
@@ -27,7 +27,8 @@ export type Competitor = ESPNEvent['competitions'][0]['competitors'][number];
 // Game Types with stronger typing
 export interface Pick {
   player: Player;
-  pick: RickTeamCode;
+  // A late pick is recorded as LATE_PICK ("X") and never matches either team.
+  pick: PlayerPick;
 }
 
 export interface Game {

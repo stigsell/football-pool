@@ -3,7 +3,8 @@
  * Validates the current week's picks spreadsheet before the app starts.
  * Flags rows where a team code isn't recognized, or a player's pick doesn't
  * match either team actually playing in that game (the classic typo shape:
- * "BART" for "BALT", "BUFF" for "BUF", etc).
+ * "BART" for "BALT", "BUFF" for "BUF", etc). A late pick, recorded as the
+ * LATE_PICK marker from constants.ts, is allowed on any game.
  */
 const fs = require("fs");
 const path = require("path");
@@ -68,7 +69,13 @@ function readConstants() {
   }
   const teamCodes = [...entriesMatch[1].matchAll(/\["([^"]+)",\s*"[^"]+"\]/g)].map((m) => m[1]);
 
-  return { currentWeek, players: new Set(players), teamCodes: new Set(teamCodes) };
+  const latePickMatch = text.match(/LATE_PICK\s*=\s*"([^"]+)"/);
+  if (!latePickMatch) {
+    throw new Error(`Could not find LATE_PICK in ${CONSTANTS_PATH}`);
+  }
+  const latePick = latePickMatch[1];
+
+  return { currentWeek, players: new Set(players), teamCodes: new Set(teamCodes), latePick };
 }
 
 function findSpreadsheet(weekNum) {
@@ -79,7 +86,7 @@ function findSpreadsheet(weekNum) {
   return filePath;
 }
 
-function checkSpreadsheet(filePath, { players, teamCodes }) {
+function checkSpreadsheet(filePath, { players, teamCodes, latePick }) {
   const workbook = XLSX.readFile(filePath);
   const worksheet = workbook.Sheets[workbook.SheetNames[0]];
   const data = XLSX.utils.sheet_to_json(worksheet, { blankrows: false });
@@ -126,7 +133,8 @@ function checkSpreadsheet(filePath, { players, teamCodes }) {
       const value = homeRow[key];
       if (typeof value !== "string") continue;
       const pick = value.toUpperCase().trim();
-      if (pick !== away && pick !== home) {
+      // A late pick counts as wrong no matter who wins, so it's valid anywhere.
+      if (pick !== away && pick !== home && pick !== latePick) {
         // Suggestions must only ever come from the master team code list —
         // away/home could themselves be typos, so they're not safe candidates.
         const reason = teamCodes.has(pick)
@@ -141,9 +149,9 @@ function checkSpreadsheet(filePath, { players, teamCodes }) {
 }
 
 function main() {
-  const { currentWeek, players, teamCodes } = readConstants();
+  const { currentWeek, players, teamCodes, latePick } = readConstants();
   const filePath = findSpreadsheet(currentWeek);
-  const issues = checkSpreadsheet(filePath, { players, teamCodes });
+  const issues = checkSpreadsheet(filePath, { players, teamCodes, latePick });
 
   if (issues.length > 0) {
     console.error(`\nFound ${issues.length} issue(s) in "${path.basename(filePath)}":\n`);

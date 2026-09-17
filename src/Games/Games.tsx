@@ -8,6 +8,7 @@ import {
 } from "../utils/scoreUtils";
 
 import { formatTwoScores } from "../utils/formatUtils";
+import { LATE_PICK } from "../utils/constants";
 import type { Game, ESPNScoresResponse } from "../types";
 
 interface GamesProps {
@@ -84,6 +85,11 @@ function Games({ games, scores }: GamesProps) {
               </thead>
               <tbody>
                 {game.picks.map((pick) => {
+                  // A late pick belongs to neither team, so it shows next to
+                  // the player instead of in a team column — and it's already
+                  // a loss whatever the score ends up being.
+                  const isLatePick = pick.pick === LATE_PICK;
+
                   return (
                     <tr key={pick.player}>
                       <td
@@ -95,7 +101,11 @@ function Games({ games, scores }: GamesProps) {
                       >
                         {pick.pick === game.away ? pick.pick : ""}
                       </td>
-                      <td>{pick.player}</td>
+                      <td className={isLatePick ? "Game__lose" : ""}>
+                        {isLatePick
+                          ? `${pick.player} (${LATE_PICK})`
+                          : pick.player}
+                      </td>
                       <td
                         className={
                           didHomeTeamWin(score) && pick.pick === game.home

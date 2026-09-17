@@ -2,7 +2,7 @@ export const ESPN_API_URL =
   "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2026&seasontype=2&week=";
 
 // Bump this each week when the new spreadsheet is added to public/spreadsheets.
-export const CURRENT_WEEK = 1;
+export const CURRENT_WEEK = 2;
 
 export const PLAYERS = [
   "Adam",
@@ -59,6 +59,12 @@ const RICK_TO_ESPN_ENTRIES = [
 // Derive team code types from the mapping arrays
 export type RickTeamCode = typeof RICK_TO_ESPN_ENTRIES[number][0];
 export type ESPNTeamCode = typeof RICK_TO_ESPN_ENTRIES[number][1];
+
+// Picks submitted after the deadline are recorded as an "X", which counts as
+// wrong no matter which team wins.
+export const LATE_PICK = "X";
+
+export type PlayerPick = RickTeamCode | typeof LATE_PICK;
 
 // Type-safe Maps for O(1) lookups
 export const RICK_TO_ESPN_MAP = new Map<RickTeamCode, ESPNTeamCode>(
