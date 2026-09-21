@@ -1,15 +1,20 @@
 import {
   getWinners,
   getTiebreakWinners,
-  isPlayerEliminated,
+  getEliminatedPlayers,
 } from "./winnerUtils";
 import {
   mockPlayersScores,
   mockPlayersScoresTied,
   mockPlayersScoresSingleWinner,
+  mockGames,
+  mockScoresResponse,
+  mockScoresResponseWithIncomplete,
+  mockGamesLastGameLeft,
+  mockScoresLastGameLeft,
 } from "../__mocks__/testData";
-import { ESPNEvent, PlayerScoreTuple, PlayersProjectedMNFPoints } from "../types";
-import { Player } from "./constants";
+import { ESPNEvent, ESPNScoresResponse, PlayerScoreTuple, PlayersProjectedMNFPoints } from "../types";
+import { Player, RickTeamCode, PlayerPick, LATE_PICK } from "./constants";
 
 describe("getWinners", () => {
   it("returns single winner when one player has highest score", () => {
@@ -174,49 +179,127 @@ describe("getTiebreakWinners", () => {
   });
 });
 
-describe("isPlayerEliminated", () => {
-  it("returns true when gap is greater than remaining games (eliminated)", () => {
-    expect(isPlayerEliminated(10, 5, 4)).toBe(true);
-    // Gap of 5, only 4 games left - can't catch up
+describe("getEliminatedPlayers", () => {
+  it("returns every player who can no longer reach the high score", () => {
+    // All three games are final, so anyone below the high score is eliminated.
+    // Adam, Kylee and Tammy missed KC; Alex missed DET.
+    expect(getEliminatedPlayers(mockGames, mockScoresResponse).sort()).toEqual([
+      "Adam",
+      "Alex",
+      "Kylee",
+      "Tammy",
+    ]);
   });
 
-  it("returns false when gap equals remaining games (can still tie)", () => {
-    expect(isPlayerEliminated(10, 5, 5)).toBe(false);
-    // Gap of 5, 5 games left - can tie with perfect picks
+  it("eliminates trailing players whose remaining picks all match the leaders", () => {
+    // One game is final and two remain, so the one-game gap looks closable -
+    // but Adam, Kylee and Tammy picked MIA and DET just like the leaders, so
+    // neither remaining game can move them any closer.
+    expect(
+      getEliminatedPlayers(mockGames, mockScoresResponseWithIncomplete).sort()
+    ).toEqual(["Adam", "Kylee", "Tammy"]);
   });
 
-  it("returns false when gap is less than remaining games (can win)", () => {
-    expect(isPlayerEliminated(10, 8, 5)).toBe(false);
-    // Gap of 2, 5 games left - can surpass leader
+  it("returns nobody when games are missing", () => {
+    expect(getEliminatedPlayers(undefined, mockScoresResponse)).toEqual([]);
   });
 
-  it("returns true when zero games remaining and gap is greater than 0", () => {
-    expect(isPlayerEliminated(10, 9, 0)).toBe(true);
-    // No games left, behind by 1 - eliminated
+  it("returns nobody when scores are missing", () => {
+    expect(getEliminatedPlayers(mockGames, undefined)).toEqual([]);
   });
 
-  it("returns false when zero games remaining and gap is 0 (tied for lead)", () => {
-    expect(isPlayerEliminated(10, 10, 0)).toBe(false);
-    // No games left, tied - not eliminated (is a winner)
+  it("eliminates trailing players who share the leaders' pick in the last game", () => {
+    // Leaders sit on 10, Connor/Noah/Adam on 9, one game left (RAMS @ GIA).
+    // Connor and Noah picked RAMS, same as the leaders, so the game cannot
+    // close the gap. Adam picked GIA and can still tie the leaders on 10.
+    const eliminated = getEliminatedPlayers(
+      mockGamesLastGameLeft,
+      mockScoresLastGameLeft
+    );
+
+    expect(eliminated).toContain("Connor");
+    expect(eliminated).toContain("Noah");
+    expect(eliminated).not.toContain("Adam");
   });
 
-  it("returns false when player is in the lead", () => {
-    expect(isPlayerEliminated(8, 10, 3)).toBe(false);
-    // Player is ahead - definitely not eliminated
+  it("keeps the leaders alive when the last game is unanimous among them", () => {
+    const eliminated = getEliminatedPlayers(
+      mockGamesLastGameLeft,
+      mockScoresLastGameLeft
+    );
+
+    ["Ben", "Nick", "Rick", "Ricky"].forEach((leader) => {
+      expect(eliminated).not.toContain(leader);
+    });
   });
 
-  it("returns true when mathematically eliminated with large gap", () => {
-    expect(isPlayerEliminated(15, 5, 5)).toBe(true);
-    // Gap of 10, only 5 games - impossible to catch up
+  it("eliminates players too far back to reach the lead at all", () => {
+    // Alex, Kylee, Tammy and Jake sit on 8 with one game left: even a win
+    // leaves them on 9, behind the leaders' 10.
+    const eliminated = getEliminatedPlayers(
+      mockGamesLastGameLeft,
+      mockScoresLastGameLeft
+    );
+
+    ["Alex", "Kylee", "Tammy", "Jake"].forEach((player) => {
+      expect(eliminated).toContain(player);
+    });
   });
 
-  it("returns false when gap is exactly 0", () => {
-    expect(isPlayerEliminated(10, 10, 5)).toBe(false);
-    // Tied for first place
+  it("does not eliminate a trailing player who disagrees with every leader", () => {
+    // Same standings, but Connor switches to GIA, which gives him Adam's path
+    // to a tie.
+    const gamesWithConnorOnGIA = mockGamesLastGameLeft.map((game, index) =>
+      index === mockGamesLastGameLeft.length - 1
+        ? {
+            ...game,
+            picks: game.picks.map((p) =>
+              p.player === "Connor" ? { ...p, pick: "GIA" as RickTeamCode } : p
+            ),
+          }
+        : game
+    );
+
+    const eliminated = getEliminatedPlayers(
+      gamesWithConnorOnGIA,
+      mockScoresLastGameLeft
+    );
+
+    expect(eliminated).not.toContain("Connor");
+    expect(eliminated).toContain("Noah");
   });
 
-  it("handles edge case of 1 game remaining", () => {
-    expect(isPlayerEliminated(10, 9, 1)).toBe(false); // Gap of 1, 1 game - can tie
-    expect(isPlayerEliminated(10, 8, 1)).toBe(true); // Gap of 2, 1 game - eliminated
+  it("does not eliminate anyone before any game has finished", () => {
+    const nothingPlayed: ESPNScoresResponse = {
+      events: mockScoresLastGameLeft.events.map((event) => ({
+        ...event,
+        status: {
+          type: { description: "Scheduled" as const, completed: false },
+          period: 0,
+          displayClock: "0:00",
+        },
+      })),
+    };
+
+    expect(getEliminatedPlayers(mockGamesLastGameLeft, nothingPlayed)).toEqual([]);
+  });
+
+  it("does not eliminate a player whose remaining pick was late", () => {
+    // A late pick can never be correct, so Adam's ceiling drops to 9 while the
+    // leaders stay on 10 - he is genuinely out.
+    const adamPickedLate = mockGamesLastGameLeft.map((game, index) =>
+      index === mockGamesLastGameLeft.length - 1
+        ? {
+            ...game,
+            picks: game.picks.map((p) =>
+              p.player === "Adam" ? { ...p, pick: LATE_PICK as PlayerPick } : p
+            ),
+          }
+        : game
+    );
+
+    expect(
+      getEliminatedPlayers(adamPickedLate, mockScoresLastGameLeft)
+    ).toContain("Adam");
   });
 });

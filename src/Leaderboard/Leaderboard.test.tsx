@@ -175,14 +175,41 @@ describe("Leaderboard", () => {
       ],
     };
 
-    // With 1 game remaining, players 2+ games behind are eliminated
-    // Adam, Kylee, Tammy picked BUF (wrong) -> only 1 correct after 2 games
-    // Others have 2 correct -> gap of 1, can still tie with 1 game left
-    // So Adam/Kylee/Tammy are NOT eliminated (gap = 1, remaining = 1)
-    renderLeaderboard({ scores: scoresWithOneRemaining });
+    // Adam, Kylee and Tammy picked BUF (wrong) -> 1 correct after 2 games.
+    // Others have 2 correct. Only DET @ CHI remains, and the trailing three
+    // picked DET just like the leaders, so that game cannot close the gap.
+    const { container } = renderLeaderboard({ scores: scoresWithOneRemaining });
 
-    // No one should be eliminated in this scenario
-    expect(screen.queryByText("❌")).not.toBeInTheDocument();
+    const eliminated = Array.from(container.querySelectorAll("tbody tr"))
+      .filter((row) => row.querySelectorAll("td")[0].textContent === "❌")
+      .map((row) => row.querySelectorAll("td")[1].textContent);
+    expect(eliminated.sort()).toEqual(["Adam", "Kylee", "Tammy"]);
+  });
+
+  it("does not eliminate a trailing player who can still close the gap", () => {
+    // Alex trails by one but picked CHIC while the leaders picked DET, so the
+    // remaining game can still bring him level.
+    const scoresWithOneRemaining: ESPNScoresResponse = {
+      events: createScores().events.map((event) =>
+        event.shortName === "CHI @ DET"
+          ? {
+              ...event,
+              status: {
+                type: { description: "Scheduled" as const, completed: false },
+                period: 0,
+                displayClock: "0:00",
+              },
+            }
+          : event
+      ),
+    };
+
+    const { container } = renderLeaderboard({ scores: scoresWithOneRemaining });
+
+    const alexRow = Array.from(container.querySelectorAll("tbody tr")).find(
+      (row) => row.querySelectorAll("td")[1].textContent === "Alex"
+    ) as HTMLElement;
+    expect(alexRow.querySelectorAll("td")[0].textContent).toBe("");
   });
 
   it("applies correct CSS classes", () => {

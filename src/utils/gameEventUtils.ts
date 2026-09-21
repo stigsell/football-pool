@@ -89,3 +89,12 @@ export const getGame = (home: RickTeamCode, away: RickTeamCode, scores: ESPNScor
 
 export const getNumberOfGamesRemaining = (scores: ESPNScoresResponse): number =>
   scores.events.filter((event) => !event.status.type.completed).length;
+
+// The pool's own games that have not finished yet. Driven by the games list
+// rather than the ESPN slate, so games the spreadsheet leaves out never count.
+export const getRemainingGames = (games: Game[], scores: ESPNScoresResponse): Game[] =>
+  games.filter((game) => {
+    const event = getGame(game.home, game.away, scores);
+    if (!event) return false;
+    return !event.status.type.completed;
+  });

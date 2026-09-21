@@ -43,6 +43,7 @@ function App() {
           </ScoreFetcher>
           <ScoreFetcher weekNumber={weekNum}>
             <Tiebreaker
+              games={games}
               playersProjectedMNFPoints={projectedMNFPoints}
             />
           </ScoreFetcher>

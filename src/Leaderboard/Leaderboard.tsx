@@ -1,11 +1,11 @@
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 
-import { getMNFGame, areAllGamesFinished, getNumberOfGamesRemaining } from "../utils/gameEventUtils";
+import { getMNFGame, areAllGamesFinished } from "../utils/gameEventUtils";
 import {
   getWinners,
   getTiebreakWinners,
-  isPlayerEliminated,
+  getEliminatedPlayers,
 } from "../utils/winnerUtils";
 import { calculateAllPlayersScores } from "../utils/scoreUtils";
 import type { Game, ESPNScoresResponse, PlayersProjectedMNFPoints } from "../types";
@@ -22,8 +22,7 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardPr
   if (!scores) return null;
 
   const allPlayersScores = calculateAllPlayersScores(games, scores);
-  const highScore = allPlayersScores[0][1];
-  const gamesRemaining = getNumberOfGamesRemaining(scores);
+  const eliminatedPlayers = getEliminatedPlayers(games, scores);
   const allGamesFinished = areAllGamesFinished(scores, games);
 
   const potentialWinners = allGamesFinished
@@ -68,9 +67,7 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardPr
               <tr key={score[0]}>
                 <td>
                   {winners.includes(score[0]) && allGamesFinished ? "🏆" : null}
-                  {isPlayerEliminated(highScore, score[1], gamesRemaining)
-                    ? "❌"
-                    : null}
+                  {eliminatedPlayers.includes(score[0]) ? "❌" : null}
                 </td>
                 <td>{score[0]}</td>
                 <td>{score[1]}</td>

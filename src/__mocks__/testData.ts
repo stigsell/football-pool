@@ -1,5 +1,5 @@
 import { ESPNEvent, ESPNScoresResponse, Game, PlayerScoreTuple, PlayersProjectedMNFPoints, Pick } from "../types";
-import { Player, RickTeamCode } from "../utils/constants";
+import { PLAYERS, Player, RickTeamCode } from "../utils/constants";
 
 // Mock ESPN API event structure
 export const mockEvent: ESPNEvent = {
@@ -306,4 +306,84 @@ export const mockPlayersProjectedMNFPoints: PlayersProjectedMNFPoints = {
   Nick: 45,
   Adam: 50,
   Alex: 42,
+};
+
+// A week down to its last game, mirroring a real Week 2 finish.
+// Ben, Nick, Rick and Ricky lead on 10; Connor, Noah and Adam sit on 9.
+// Everyone but Adam picked RAMS in the closer, so Connor and Noah cannot win
+// (RAMS win and the leaders move to 11; GIA win and the leaders stay ahead on
+// 10), while Adam can still tie the leaders on 10 and take it to the MNF
+// tiebreaker.
+const lastGamePicks: Pick[] = [
+  pick("Nick", "RAMS"),
+  pick("Adam", "GIA"),
+  pick("Alex", "RAMS"),
+  pick("Ben", "RAMS"),
+  pick("Kylee", "RAMS"),
+  pick("Rick", "RAMS"),
+  pick("Ricky", "RAMS"),
+  pick("Tammy", "RAMS"),
+  pick("Connor", "RAMS"),
+  pick("Noah", "RAMS"),
+  pick("Jake", "RAMS"),
+];
+
+// Winners of the finished games, used to build each player's running score.
+const FINISHED_GAME_WINNERS: RickTeamCode[] = ["KC", "MIA", "DET", "BUF"];
+
+// How many of the four finished games each player got right.
+const CORRECT_SO_FAR: Record<Player, number> = {
+  Nick: 4, Ben: 4, Rick: 4, Ricky: 4,
+  Connor: 3, Noah: 3, Adam: 3,
+  Alex: 2, Kylee: 2, Tammy: 2, Jake: 2,
+};
+
+const finishedGamePicks = (gameIndex: number, loser: RickTeamCode): Pick[] =>
+  PLAYERS.map((player) =>
+    pick(
+      player,
+      gameIndex < CORRECT_SO_FAR[player]
+        ? FINISHED_GAME_WINNERS[gameIndex]
+        : loser
+    )
+  );
+
+export const mockGamesLastGameLeft: Game[] = [
+  { home: "KC", away: "BUF", picks: finishedGamePicks(0, "BUF") },
+  { home: "NE", away: "MIA", picks: finishedGamePicks(1, "NE") },
+  { home: "DET", away: "CHIC", picks: finishedGamePicks(2, "CHIC") },
+  { home: "JETS", away: "BUF", picks: finishedGamePicks(3, "JETS") },
+  { home: "RAMS", away: "GIA", picks: lastGamePicks },
+];
+
+const finalEvent = (shortName: string, date: string, home: string, away: string): ESPNEvent => ({
+  shortName,
+  date,
+  status: { type: { description: "Final", completed: true }, period: 4, displayClock: "0:00" },
+  competitions: [{
+    competitors: [
+      { homeAway: "home", score: home },
+      { homeAway: "away", score: away },
+    ],
+  }],
+});
+
+export const mockScoresLastGameLeft: ESPNScoresResponse = {
+  events: [
+    finalEvent("BUF @ KC", "2025-01-18T18:00Z", "27", "24"),
+    finalEvent("MIA @ NE", "2025-01-18T21:00Z", "21", "28"),
+    finalEvent("CHI @ DET", "2025-01-19T13:00Z", "35", "14"),
+    finalEvent("BUF @ NYJ", "2025-01-19T16:00Z", "17", "20"),
+    {
+      shortName: "NYG @ LAR",
+      date: "2025-01-20T00:15Z",
+      status: { type: { description: "Scheduled", completed: false }, period: 0, displayClock: "0:00" },
+      competitions: [{
+        competitors: [
+          { homeAway: "home", score: "0" },
+          { homeAway: "away", score: "0" },
+        ],
+      }],
+    },
+  ],
 };

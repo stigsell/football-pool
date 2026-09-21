@@ -31,6 +31,9 @@
     width: 100px;
   }
 }
+.Tiebreaker__eliminated {
+  text-decoration: line-through;
+}
 .SeasonResults {
   padding: 10px;
   text-align: center;
