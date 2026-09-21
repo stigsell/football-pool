@@ -1,5 +1,31 @@
+:root {
+  color-scheme: light dark;
+
+  --color-background: #ffffff;
+  --color-text: #213547;
+  --color-border: #213547;
+  --color-win: green;
+  --color-lose: red;
+  --color-win-text: #ffffff;
+  --color-lose-text: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #000000;
+    --color-text: #e6e6e6;
+    --color-border: #444444;
+    --color-win: #14532d;
+    --color-lose: #7f1d1d;
+    --color-win-text: #e6e6e6;
+    --color-lose-text: #e6e6e6;
+  }
+}
+
 body {
   margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

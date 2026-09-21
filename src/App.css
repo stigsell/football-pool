@@ -9,7 +9,7 @@
 }
 .Leaderboard__table {
   width: 300px;
-  border: 1px solid;
+  border: 1px solid var(--color-border);
   padding: 10px;
   
   td {
@@ -23,7 +23,7 @@
 }
 .Tiebreaker__table {
   width: 300px;
-  border: 1px solid;
+  border: 1px solid var(--color-border);
   padding: 10px;
   
   td {
@@ -37,7 +37,7 @@
 }
 .SeasonResults__table {
   width: 300px;
-  border: 1px solid;
+  border: 1px solid var(--color-border);
   padding: 10px;
   
   td {
@@ -60,7 +60,7 @@
 }
 .Game__table {
     width: 300px;
-    border: 1px solid;
+    border: 1px solid var(--color-border);
     padding: 10px;
     text-align: center;
   
@@ -70,8 +70,10 @@
   }
 }
 .Game__win {
-  background-color: green;
+  background-color: var(--color-win);
+  color: var(--color-win-text);
 }
 .Game__lose{
-  background-color: red;
+  background-color: var(--color-lose);
+  color: var(--color-lose-text);
 }
