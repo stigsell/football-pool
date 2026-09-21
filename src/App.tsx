@@ -32,22 +32,20 @@ function App() {
       {inputFile !== null && (
         <>
           <h2>{weekNum > 0 && "Week " + weekNum}</h2>
+          {/* One fetcher for the whole page: it hands the same scores to
+              every child, so the week's scores are fetched once. */}
           <ScoreFetcher weekNumber={weekNum}>
             <Leaderboard
               games={games}
               playersProjectedMNFPoints={projectedMNFPoints}
             />
-          </ScoreFetcher>
-          <ScoreFetcher weekNumber={weekNum}>
             <Games games={games} />
-          </ScoreFetcher>
-          <ScoreFetcher weekNumber={weekNum}>
             <Tiebreaker
               games={games}
               playersProjectedMNFPoints={projectedMNFPoints}
             />
+            <SeasonResults week={weekNum} games={games} />
           </ScoreFetcher>
-          <SeasonResults />
         </>
       )}
     </div>

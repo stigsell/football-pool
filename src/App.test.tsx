@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import App from "./App";
 import * as XLSX from "xlsx";
 import { CURRENT_WEEK } from "./utils/constants";
@@ -186,9 +186,13 @@ describe("App", () => {
   });
 
   it("displays leaderboard headers", async () => {
-    render(<App />);
+    const { container } = render(<App />);
     await waitFor(() => {
-      expect(screen.getByText("# Correct")).toBeInTheDocument();
+      // Season Results carries a "# Correct" column too, so scope the query.
+      const leaderboard = container.querySelector(
+        ".Leaderboard__table"
+      ) as HTMLElement;
+      expect(within(leaderboard).getByText("# Correct")).toBeInTheDocument();
     });
   });
 
@@ -208,6 +212,30 @@ describe("App", () => {
         expect.stringContaining("espn.com")
       );
     });
+  });
+
+  it("fetches the week's scores exactly once for the whole page", async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText("Leaderboard")).toBeInTheDocument();
+    });
+
+    const espnCalls = (global.fetch as jest.Mock).mock.calls.filter(
+      ([url]: [string]) => url.includes("espn.com")
+    );
+    // Every section reads the same response, so one fetcher covers the page.
+    // React's StrictMode doubles this to two in development.
+    expect(espnCalls.length).toBe(1);
+  });
+
+  it("renders every section from that single fetch", async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText("Leaderboard")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Games")).toBeInTheDocument();
+    expect(screen.getByText("Tiebreaker")).toBeInTheDocument();
+    expect(screen.getByText("Season Results")).toBeInTheDocument();
   });
 
   it("displays tiebreaker section with projected points header", async () => {

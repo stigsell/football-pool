@@ -19,9 +19,11 @@
   "scripts": {
     "predeploy": "npm run test && npm run build && cp CNAME build/CNAME",
     "deploy": "gh-pages -d build",
-    "prestart": "node scripts/check-spreadsheet.js",
+    "prestart": "tsx scripts/check-spreadsheet.ts",
     "start": "react-scripts start",
-    "check:spreadsheet": "node scripts/check-spreadsheet.js",
+    "check:spreadsheet": "tsx scripts/check-spreadsheet.ts",
+    "advance-week": "tsx scripts/advance-week.ts",
+    "typecheck:scripts": "tsc -p scripts --noEmit",
     "build": "react-scripts build",
     "test": "react-scripts test --watchAll=false --coverage --collectCoverageFrom='src/**/*.{js,jsx,ts,tsx}'",
     "eject": "react-scripts eject"
@@ -91,6 +93,7 @@
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
     "gh-pages": "^6.3.0",
+    "tsx": "^4.23.15",
     "typescript": "^4.9.5"
   },
   "jest": {

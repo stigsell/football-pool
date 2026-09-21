@@ -1,0 +1,20 @@
+{
+  "weeks": [
+    {
+      "week": 1,
+      "correctPicks": {
+        "Adam": 10,
+        "Alex": 10,
+        "Ben": 10,
+        "Kylee": 8,
+        "Nick": 10,
+        "Rick": 10,
+        "Ricky": 9,
+        "Tammy": 9,
+        "Connor": 10,
+        "Noah": 12,
+        "Jake": 9
+      }
+    }
+  ]
+}

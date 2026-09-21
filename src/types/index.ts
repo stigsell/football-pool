@@ -46,3 +46,15 @@ export interface GameScore {
 // Player Types
 export type PlayerScoreTuple = [Player, number];
 export type PlayersProjectedMNFPoints = Partial<Record<Player, number>>;
+
+// Season Types
+// One entry per completed week, holding each player's correct picks for that
+// week rather than a running total, so the weekly splits stay available.
+export interface SeasonWeekResult {
+  week: number;
+  correctPicks: Partial<Record<Player, number>>;
+}
+
+export interface SeasonResultsData {
+  weeks: SeasonWeekResult[];
+}
