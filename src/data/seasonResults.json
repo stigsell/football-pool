@@ -14,7 +14,29 @@
         "Connor": 10,
         "Noah": 12,
         "Jake": 9
-      }
+      },
+      "winners": [
+        "Noah"
+      ]
+    },
+    {
+      "week": 2,
+      "correctPicks": {
+        "Adam": 9,
+        "Alex": 9,
+        "Ben": 11,
+        "Kylee": 8,
+        "Nick": 11,
+        "Rick": 11,
+        "Ricky": 11,
+        "Tammy": 9,
+        "Connor": 10,
+        "Noah": 10,
+        "Jake": 8
+      },
+      "winners": [
+        "Nick"
+      ]
     }
   ]
 }

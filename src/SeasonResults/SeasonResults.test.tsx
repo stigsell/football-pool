@@ -3,10 +3,20 @@ import { render, screen } from "@testing-library/react";
 import SeasonResults from "./SeasonResults";
 import seasonResults from "../data/seasonResults.json";
 import { PLAYERS } from "../utils/constants";
+import type { Player } from "../utils/constants";
 import { mockGames, mockScoresResponse } from "../__mocks__/testData";
 import type { SeasonResultsData } from "../types";
 
 const { weeks } = seasonResults as SeasonResultsData;
+
+// Derived from the season data so these stay true as weeks are added.
+const recordedTotal = (player: Player): number =>
+  weeks.reduce((sum, week) => sum + (week.correctPicks[player] ?? 0), 0);
+
+const seasonLeader = (): [Player, number] =>
+  PLAYERS.map((player): [Player, number] => [player, recordedTotal(player)]).sort(
+    (a, b) => (a[1] === b[1] ? a[0].localeCompare(b[0]) : b[1] - a[1])
+  )[0];
 
 describe("SeasonResults", () => {
   it("renders the Season Results heading", () => {
@@ -18,6 +28,25 @@ describe("SeasonResults", () => {
     render(<SeasonResults />);
     expect(screen.getByText("Week")).toBeInTheDocument();
     expect(screen.getByText("Winner")).toBeInTheDocument();
+  });
+
+  it("lists every recorded week's winner from the season data", () => {
+    const { container } = render(<SeasonResults />);
+    const winnersTable = container.querySelectorAll(".SeasonResults__table")[0];
+    const rows = Array.from(winnersTable.querySelectorAll("tbody tr")).map(
+      (row) => {
+        const cells = row.querySelectorAll("td");
+        return [cells[0].textContent, cells[1].textContent];
+      }
+    );
+
+    const expected = weeks
+      .filter((week) => (week.winners ?? []).length > 0)
+      .sort((a, b) => a.week - b.week)
+      .map((week) => [String(week.week), (week.winners ?? []).join(" & ")]);
+
+    expect(rows).toEqual(expected);
+    expect(rows.length).toBe(weeks.length);
   });
 
   it("renders a season totals table with Player and # Correct columns", () => {
@@ -63,10 +92,10 @@ describe("SeasonResults", () => {
     const { container } = render(<SeasonResults />);
     const totalsTable = container.querySelectorAll(".SeasonResults__table")[1];
     const firstRow = totalsTable.querySelectorAll("tbody tr")[0];
+    const [player, total] = seasonLeader();
 
-    // Noah's 12 in week 1 is the best single week so far.
-    expect(firstRow.querySelectorAll("td")[0].textContent).toBe("Noah");
-    expect(firstRow.querySelectorAll("td")[1].textContent).toBe("12");
+    expect(firstRow.querySelectorAll("td")[0].textContent).toBe(player);
+    expect(firstRow.querySelectorAll("td")[1].textContent).toBe(String(total));
   });
 
   describe("week in progress", () => {
@@ -80,11 +109,18 @@ describe("SeasonResults", () => {
       );
     };
 
+    // A week past everything in the season data, so it counts as live.
+    const liveWeekNumber = Math.max(...weeks.map((week) => week.week)) + 1;
+
     it("adds the live scores of the week being played", () => {
       const recordedOnly = totalsFor(render(<SeasonResults />).container);
 
       const { container } = render(
-        <SeasonResults week={2} games={mockGames} scores={mockScoresResponse} />
+        <SeasonResults
+          week={liveWeekNumber}
+          games={mockGames}
+          scores={mockScoresResponse}
+        />
       );
       const withLive = totalsFor(container);
 
@@ -97,9 +133,8 @@ describe("SeasonResults", () => {
       const { container } = render(<SeasonResults />);
       const totals = totalsFor(container);
 
-      const week1 = weeks[0].correctPicks;
-      expect(totals.Nick).toBe(week1.Nick);
-      expect(totals.Noah).toBe(week1.Noah);
+      expect(totals.Nick).toBe(recordedTotal("Nick"));
+      expect(totals.Noah).toBe(recordedTotal("Noah"));
     });
 
     it("does not double count a week that is already recorded", () => {
@@ -109,7 +144,7 @@ describe("SeasonResults", () => {
       );
       const totals = totalsFor(container);
 
-      expect(totals.Nick).toBe(weeks[0].correctPicks.Nick);
+      expect(totals.Nick).toBe(recordedTotal("Nick"));
     });
   });
 });

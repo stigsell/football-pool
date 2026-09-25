@@ -1,4 +1,9 @@
-import { getSeasonTotals, getLiveWeekResult, withLiveWeek } from "./seasonUtils";
+import {
+  getSeasonTotals,
+  getWeekWinners,
+  getLiveWeekResult,
+  withLiveWeek,
+} from "./seasonUtils";
 import { PLAYERS } from "./constants";
 import {
   mockGames,
@@ -96,5 +101,41 @@ describe("withLiveWeek", () => {
     // Once week 1 lands in the json file its live scores are ignored.
     const live: SeasonWeekResult = { week: 1, correctPicks: { Nick: 4 } };
     expect(withLiveWeek(recorded, live)).toEqual(recorded);
+  });
+});
+
+describe("getWeekWinners", () => {
+  it("lists each recorded week with its winner in playing order", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 2, correctPicks: { Nick: 11 }, winners: ["Nick"] },
+      { week: 1, correctPicks: { Noah: 12 }, winners: ["Noah"] },
+    ];
+
+    expect(getWeekWinners(weeks)).toEqual([
+      { week: 1, winner: "Noah" },
+      { week: 2, winner: "Nick" },
+    ]);
+  });
+
+  it("shares a week the tiebreaker could not separate", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: { Nick: 11, Ben: 11 }, winners: ["Ben", "Nick"] },
+    ];
+
+    expect(getWeekWinners(weeks)).toEqual([{ week: 1, winner: "Ben & Nick" }]);
+  });
+
+  it("leaves out a week with no winner decided yet", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: { Noah: 12 }, winners: ["Noah"] },
+      { week: 2, correctPicks: { Nick: 6 } },
+      { week: 3, correctPicks: { Nick: 2 }, winners: [] },
+    ];
+
+    expect(getWeekWinners(weeks)).toEqual([{ week: 1, winner: "Noah" }]);
+  });
+
+  it("returns nothing for a season with no recorded weeks", () => {
+    expect(getWeekWinners([])).toEqual([]);
   });
 });

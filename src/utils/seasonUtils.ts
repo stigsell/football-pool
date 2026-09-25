@@ -36,6 +36,20 @@ export const withLiveWeek = (
   return [...weeks, liveWeek];
 };
 
+// The recorded weeks in playing order, with their winner formatted for
+// display. A week with no winner yet is left out.
+export const getWeekWinners = (
+  weeks: SeasonWeekResult[]
+): Array<{ week: number; winner: string }> =>
+  weeks
+    .filter((week) => week.winners !== undefined && week.winners.length > 0)
+    .sort((a, b) => a.week - b.week)
+    .map((week) => ({
+      week: week.week,
+      // A tie the MNF points tiebreaker could not separate shares the week.
+      winner: (week.winners as Player[]).join(" & "),
+    }));
+
 // Each player's correct picks across every recorded week, highest first.
 // Players level on the season stay in alphabetical order.
 export const getSeasonTotals = (weeks: SeasonWeekResult[]): PlayerScoreTuple[] => {

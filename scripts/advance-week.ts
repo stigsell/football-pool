@@ -32,11 +32,14 @@ import {
 import { CURRENT_WEEK, PLAYERS, ESPN_API_URL } from "../src/utils/constants";
 import { parseFile } from "../src/FileGetter/utils";
 import { calculateAllPlayersScores, checkScore } from "../src/utils/scoreUtils";
+import { getWinners, getTiebreakWinners } from "../src/utils/winnerUtils";
+import { getMNFGame } from "../src/utils/gameEventUtils";
 import type { Player } from "../src/utils/constants";
 import type { ExcelRow } from "../src/FileGetter/utils";
 import type {
   ESPNScoresResponse,
   Game,
+  PlayersProjectedMNFPoints,
   SeasonResultsData,
   SeasonWeekResult,
 } from "../src/types";
@@ -69,8 +72,18 @@ function parseArgs(argv: string[]): { filePath: string; force: boolean } {
   return { filePath: resolved, force };
 }
 
-const readGames = (filePath: string, weekNum: number): Game[] =>
-  parseFile(readSpreadsheet(filePath) as ExcelRow[], weekNum);
+// The app reads the week's picks from every row but the last, which holds each
+// player's MNF points estimate.
+function readWeek(
+  filePath: string,
+  weekNum: number
+): { games: Game[]; projectedMNFPoints: PlayersProjectedMNFPoints } {
+  const rows = readSpreadsheet(filePath) as ExcelRow[];
+  return {
+    games: parseFile(rows, weekNum),
+    projectedMNFPoints: rows.slice(-1)[0] as PlayersProjectedMNFPoints,
+  };
+}
 
 async function fetchScores(weekNum: number): Promise<ESPNScoresResponse> {
   const response = await fetch(ESPN_API_URL + weekNum);
@@ -91,11 +104,28 @@ const getUnscoredGames = (games: Game[], scores: ESPNScoresResponse): string[] =
       return `${game.away} @ ${game.home} (${status})`;
     });
 
-function scoreWeek(games: Game[], scores: ESPNScoresResponse): SeasonWeekResult["correctPicks"] {
-  const byPlayer = new Map<Player, number>(calculateAllPlayersScores(games, scores));
+// The week's correct picks and its winner, decided exactly as the Leaderboard
+// decides them: most correct picks, then the MNF points tiebreaker.
+function scoreWeek(
+  weekNum: number,
+  games: Game[],
+  scores: ESPNScoresResponse,
+  projectedMNFPoints: PlayersProjectedMNFPoints
+): SeasonWeekResult {
+  const standings = calculateAllPlayersScores(games, scores);
+
+  const byPlayer = new Map<Player, number>(standings);
   const correctPicks: SeasonWeekResult["correctPicks"] = {};
   for (const player of PLAYERS) correctPicks[player] = byPlayer.get(player) ?? 0;
-  return correctPicks;
+
+  const tiedAtTop = getWinners(standings);
+  const mnfGame = getMNFGame(scores);
+  const winners =
+    tiedAtTop.length > 1 && mnfGame
+      ? getTiebreakWinners(mnfGame, tiedAtTop, projectedMNFPoints)
+      : tiedAtTop;
+
+  return { week: weekNum, correctPicks, winners };
 }
 
 function readSeasonResults(): SeasonResultsData {
@@ -176,7 +206,10 @@ async function main(): Promise<void> {
     );
   }
 
-  const games = readGames(findSpreadsheet(CURRENT_WEEK), CURRENT_WEEK);
+  const { games, projectedMNFPoints } = readWeek(
+    findSpreadsheet(CURRENT_WEEK),
+    CURRENT_WEEK
+  );
   if (games.length === 0) {
     throw new Error(`No games found in "${spreadsheetName(CURRENT_WEEK)}".`);
   }
@@ -192,17 +225,20 @@ async function main(): Promise<void> {
     );
   }
 
-  const correctPicks = scoreWeek(games, scores);
+  const result = scoreWeek(CURRENT_WEEK, games, scores, projectedMNFPoints);
   season.weeks = season.weeks.filter((week) => week.week !== CURRENT_WEEK);
-  season.weeks.push({ week: CURRENT_WEEK, correctPicks });
+  season.weeks.push(result);
   writeSeasonResults(season);
 
+  const winnerList = (result.winners ?? []).join(" & ") || "nobody";
   process.stdout.write(`Recorded week ${CURRENT_WEEK} in seasonResults.json:\n`);
-  Object.entries(correctPicks)
+  Object.entries(result.correctPicks)
     .sort((a, b) => (b[1] as number) - (a[1] as number))
-    .forEach(([player, correct]) =>
-      process.stdout.write(`  ${player.padEnd(8)} ${correct}\n`)
-    );
+    .forEach(([player, correct]) => {
+      const trophy = (result.winners ?? []).includes(player as Player) ? " 🏆" : "";
+      process.stdout.write(`  ${player.padEnd(8)} ${correct}${trophy}\n`);
+    });
+  process.stdout.write(`Week ${CURRENT_WEEK} winner: ${winnerList}.\n`);
 
   // 2. Advance the week number.
   bumpCurrentWeek(CURRENT_WEEK, nextWeek);

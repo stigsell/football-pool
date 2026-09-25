@@ -1,5 +1,6 @@
 import {
   getSeasonTotals,
+  getWeekWinners,
   getLiveWeekResult,
   withLiveWeek,
 } from "../utils/seasonUtils";
@@ -16,6 +17,7 @@ function SeasonResults({ week, games, scores }: SeasonResultsProps) {
   const { weeks } = seasonResults as SeasonResultsData;
   const liveWeek = getLiveWeekResult(week, games, scores);
   const seasonTotals = getSeasonTotals(withLiveWeek(weeks, liveWeek));
+  const weekWinners = getWeekWinners(weeks);
 
   return (
     <>
@@ -34,10 +36,12 @@ function SeasonResults({ week, games, scores }: SeasonResultsProps) {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td>Noah</td>
-            </tr>
+            {weekWinners.map(({ week: weekNum, winner }) => (
+              <tr key={weekNum}>
+                <td>{weekNum}</td>
+                <td>{winner}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
