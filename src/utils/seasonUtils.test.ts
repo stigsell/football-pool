@@ -1,16 +1,18 @@
 import {
   getSeasonTotals,
   getWeekWinners,
+  getLatePickTotals,
   getLiveWeekResult,
+  countLatePicks,
   withLiveWeek,
 } from "./seasonUtils";
-import { PLAYERS } from "./constants";
+import { LATE_PICK, PLAYERS } from "./constants";
 import {
   mockGames,
   mockScoresResponse,
   mockScoresResponseWithIncomplete,
 } from "../__mocks__/testData";
-import type { SeasonWeekResult } from "../types";
+import type { Game, SeasonWeekResult } from "../types";
 
 describe("getSeasonTotals", () => {
   it("adds each player's correct picks across every week", () => {
@@ -137,5 +139,82 @@ describe("getWeekWinners", () => {
 
   it("returns nothing for a season with no recorded weeks", () => {
     expect(getWeekWinners([])).toEqual([]);
+  });
+});
+
+describe("countLatePicks", () => {
+  const game = (picks: Game["picks"]): Game => ({ home: "KC", away: "BUF", picks });
+
+  it("counts each player's picks that missed the deadline", () => {
+    const games: Game[] = [
+      game([
+        { player: "Nick", pick: LATE_PICK },
+        { player: "Adam", pick: "KC" },
+      ]),
+      game([
+        { player: "Nick", pick: LATE_PICK },
+        { player: "Adam", pick: LATE_PICK },
+      ]),
+    ];
+
+    expect(countLatePicks(games)).toEqual({ Nick: 2, Adam: 1 });
+  });
+
+  it("leaves out players who were never late", () => {
+    const games: Game[] = [game([{ player: "Nick", pick: "KC" }])];
+    expect(countLatePicks(games)).toEqual({});
+  });
+
+  it("counts nothing for a week with no games", () => {
+    expect(countLatePicks([])).toEqual({});
+  });
+});
+
+describe("getLatePickTotals", () => {
+  it("adds each player's late picks across every week", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: {}, latePicks: { Nick: 1, Adam: 2 } },
+      { week: 2, correctPicks: {}, latePicks: { Nick: 3 } },
+    ];
+
+    const totals = Object.fromEntries(getLatePickTotals(weeks));
+    expect(totals.Nick).toBe(4);
+    expect(totals.Adam).toBe(2);
+  });
+
+  it("sorts from most late picks to fewest", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: {}, latePicks: { Nick: 1, Adam: 3, Ben: 2 } },
+    ];
+
+    expect(getLatePickTotals(weeks).slice(0, 3)).toEqual([
+      ["Adam", 3],
+      ["Ben", 2],
+      ["Nick", 1],
+    ]);
+  });
+
+  it("breaks ties alphabetically", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: {}, latePicks: { Nick: 2, Ben: 2 } },
+    ];
+
+    expect(getLatePickTotals(weeks).slice(0, 2)).toEqual([
+      ["Ben", 2],
+      ["Nick", 2],
+    ]);
+  });
+
+  it("counts a week recorded without late picks as zero", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: { Nick: 10 } },
+      { week: 2, correctPicks: { Nick: 9 }, latePicks: { Nick: 1 } },
+    ];
+
+    expect(Object.fromEntries(getLatePickTotals(weeks)).Nick).toBe(1);
+  });
+
+  it("includes every player even with no weeks recorded", () => {
+    expect(getLatePickTotals([])).toHaveLength(PLAYERS.length);
   });
 });

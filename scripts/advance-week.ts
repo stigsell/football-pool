@@ -4,6 +4,7 @@
  *
  * Closes out the current week and rolls the site over to the next one:
  *   1. Records the current week's correct picks in src/data/seasonResults.json
+ *      and recounts every recorded week's late picks
  *   2. Bumps CURRENT_WEEK in src/utils/constants.ts
  *   3. Copies the new spreadsheet into public/spreadsheets
  *   4. Checks the new spreadsheet for typos, refusing to run if it finds any
@@ -33,6 +34,7 @@ import { CURRENT_WEEK, PLAYERS, ESPN_API_URL } from "../src/utils/constants";
 import { parseFile } from "../src/FileGetter/utils";
 import { calculateAllPlayersScores, checkScore } from "../src/utils/scoreUtils";
 import { getWinners, getTiebreakWinners } from "../src/utils/winnerUtils";
+import { countLatePicks } from "../src/utils/seasonUtils";
 import { getMNFGame } from "../src/utils/gameEventUtils";
 import type { Player } from "../src/utils/constants";
 import type { ExcelRow } from "../src/FileGetter/utils";
@@ -126,6 +128,32 @@ function scoreWeek(
       : tiedAtTop;
 
   return { week: weekNum, correctPicks, winners };
+}
+
+// Late picks are read from the spreadsheets rather than the scores, so every
+// recorded week is recounted on each run: a spreadsheet corrected after its
+// week was recorded still makes it into the season's late pick totals. A week
+// whose spreadsheet is no longer around keeps the count it already has.
+function recountLatePicks(weeks: SeasonWeekResult[]): number[] {
+  const skipped: number[] = [];
+
+  for (const week of weeks) {
+    const filePath = path.join(SPREADSHEETS_DIR, spreadsheetName(week.week));
+    if (!fs.existsSync(filePath)) {
+      skipped.push(week.week);
+      continue;
+    }
+
+    const { games } = readWeek(filePath, week.week);
+    if (games.length === 0) {
+      skipped.push(week.week);
+      continue;
+    }
+
+    week.latePicks = countLatePicks(games);
+  }
+
+  return skipped;
 }
 
 function readSeasonResults(): SeasonResultsData {
@@ -228,6 +256,7 @@ async function main(): Promise<void> {
   const result = scoreWeek(CURRENT_WEEK, games, scores, projectedMNFPoints);
   season.weeks = season.weeks.filter((week) => week.week !== CURRENT_WEEK);
   season.weeks.push(result);
+  const skipped = recountLatePicks(season.weeks);
   writeSeasonResults(season);
 
   const winnerList = (result.winners ?? []).join(" & ") || "nobody";
@@ -239,6 +268,26 @@ async function main(): Promise<void> {
       process.stdout.write(`  ${player.padEnd(8)} ${correct}${trophy}\n`);
     });
   process.stdout.write(`Week ${CURRENT_WEEK} winner: ${winnerList}.\n`);
+
+  const latePickTotals = PLAYERS.map((player): [Player, number] => [
+    player,
+    season.weeks.reduce((total, week) => total + (week.latePicks?.[player] ?? 0), 0),
+  ]).filter(([, total]) => total > 0);
+  process.stdout.write(
+    `Recounted late picks across ${season.weeks.length} week(s)` +
+      (skipped.length > 0
+        ? ` (no spreadsheet for week${skipped.length > 1 ? "s" : ""} ${skipped.join(", ")})`
+        : "") +
+      ":\n"
+  );
+  if (latePickTotals.length === 0) {
+    process.stdout.write("  nobody has been late yet\n");
+  }
+  latePickTotals
+    .sort((a, b) => (a[1] === b[1] ? a[0].localeCompare(b[0]) : b[1] - a[1]))
+    .forEach(([player, late]) => {
+      process.stdout.write(`  ${player.padEnd(8)} ${late}\n`);
+    });
 
   // 2. Advance the week number.
   bumpCurrentWeek(CURRENT_WEEK, nextWeek);

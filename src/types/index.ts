@@ -52,10 +52,13 @@ export type PlayersProjectedMNFPoints = Partial<Record<Player, number>>;
 // week rather than a running total, so the weekly splits stay available.
 // `winners` is absent for the week still being played, and holds more than one
 // player only when the MNF points tiebreaker cannot separate them.
+// `latePicks` counts the picks the player got in after the deadline that week,
+// and is absent for a week recorded before late picks were tracked.
 export interface SeasonWeekResult {
   week: number;
   correctPicks: Partial<Record<Player, number>>;
   winners?: Player[];
+  latePicks?: Partial<Record<Player, number>>;
 }
 
 export interface SeasonResultsData {

@@ -1,6 +1,7 @@
 import {
   getSeasonTotals,
   getWeekWinners,
+  getLatePickTotals,
   getLiveWeekResult,
   withLiveWeek,
 } from "../utils/seasonUtils";
@@ -16,7 +17,9 @@ interface SeasonResultsProps {
 function SeasonResults({ week, games, scores }: SeasonResultsProps) {
   const { weeks } = seasonResults as SeasonResultsData;
   const liveWeek = getLiveWeekResult(week, games, scores);
-  const seasonTotals = getSeasonTotals(withLiveWeek(weeks, liveWeek));
+  const allWeeks = withLiveWeek(weeks, liveWeek);
+  const seasonTotals = getSeasonTotals(allWeeks);
+  const latePickTotals = getLatePickTotals(allWeeks);
   const weekWinners = getWeekWinners(weeks);
 
   return (
@@ -60,6 +63,29 @@ function SeasonResults({ week, games, scores }: SeasonResultsProps) {
           </thead>
           <tbody>
             {seasonTotals.map(([player, total]) => (
+              <tr key={player}>
+                <td>{player}</td>
+                <td>{total}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="SeasonResults">
+        <table className="SeasonResults__table">
+          <thead>
+            <tr>
+              <td>
+                <b>Player</b>
+              </td>
+              <td>
+                <b># Late Picks</b>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            {latePickTotals.map(([player, total]) => (
               <tr key={player}>
                 <td>{player}</td>
                 <td>{total}</td>

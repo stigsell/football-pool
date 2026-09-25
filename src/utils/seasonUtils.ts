@@ -1,4 +1,4 @@
-import { PLAYERS } from "./constants";
+import { LATE_PICK, PLAYERS } from "./constants";
 import { calculateAllPlayersScores } from "./scoreUtils";
 import type { Player } from "./constants";
 import type {
@@ -7,6 +7,20 @@ import type {
   PlayerScoreTuple,
   SeasonWeekResult,
 } from "../types";
+
+// Each player's late picks in a single week's games. A pick that missed the
+// deadline is recorded as LATE_PICK, so no scores are needed to count them.
+export const countLatePicks = (games: Game[]): Partial<Record<Player, number>> => {
+  const latePicks: Partial<Record<Player, number>> = {};
+
+  for (const game of games) {
+    for (const { player, pick } of game.picks) {
+      if (pick === LATE_PICK) latePicks[player] = (latePicks[player] ?? 0) + 1;
+    }
+  }
+
+  return latePicks;
+};
 
 // The week currently being played, scored from the live ESPN results so the
 // season totals move as games finish.
@@ -22,7 +36,7 @@ export const getLiveWeekResult = (
     correctPicks[player] = score;
   }
 
-  return { week, correctPicks };
+  return { week, correctPicks, latePicks: countLatePicks(games) };
 };
 
 // Recorded weeks win: once a week lands in seasonResults.json its live scores
@@ -56,6 +70,19 @@ export const getSeasonTotals = (weeks: SeasonWeekResult[]): PlayerScoreTuple[] =
   const totals: PlayerScoreTuple[] = PLAYERS.map((player: Player) => [
     player,
     weeks.reduce((total, week) => total + (week.correctPicks[player] ?? 0), 0),
+  ]);
+
+  return totals.sort((a, b) =>
+    a[1] === b[1] ? a[0].localeCompare(b[0]) : b[1] - a[1]
+  );
+};
+
+// Each player's late picks across every recorded week, most first. Players
+// level on late picks stay in alphabetical order.
+export const getLatePickTotals = (weeks: SeasonWeekResult[]): PlayerScoreTuple[] => {
+  const totals: PlayerScoreTuple[] = PLAYERS.map((player: Player) => [
+    player,
+    weeks.reduce((total, week) => total + (week.latePicks?.[player] ?? 0), 0),
   ]);
 
   return totals.sort((a, b) =>

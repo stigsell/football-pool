@@ -17,7 +17,8 @@
       },
       "winners": [
         "Noah"
-      ]
+      ],
+      "latePicks": {}
     },
     {
       "week": 2,
@@ -36,7 +37,11 @@
       },
       "winners": [
         "Nick"
-      ]
+      ],
+      "latePicks": {
+        "Adam": 1,
+        "Jake": 1
+      }
     }
   ]
 }
