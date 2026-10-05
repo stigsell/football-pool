@@ -387,3 +387,98 @@ export const mockScoresLastGameLeft: ESPNScoresResponse = {
     },
   ],
 };
+
+// The real Week 4 of 2026, with every game final except Monday night's
+// ATL @ NO. Picks are listed in PLAYERS order.
+const week4Picks: [RickTeamCode, RickTeamCode, string][] = [
+  ["PITT", "CLEV", "PITT CLEV PITT PITT PITT CLEV PITT PITT PITT PITT CLEV"],
+  ["INDY", "WASH", "INDY INDY INDY WASH WASH WASH INDY INDY WASH INDY INDY"],
+  ["NE", "BUF", "BUF BUF BUF BUF BUF BUF BUF BUF BUF BUF BUF"],
+  ["JETS", "CHIC", "CHIC CHIC CHIC CHIC CHIC CHIC CHIC CHIC CHIC CHIC CHIC"],
+  ["JAX", "CN", "JAX CN CN CN JAX JAX JAX CN JAX JAX JAX"],
+  ["AZ", "GIA", "AZ GIA GIA AZ GIA GIA AZ AZ AZ AZ AZ"],
+  ["RAMS", "PHIL", "PHIL RAMS RAMS PHIL RAMS RAMS PHIL PHIL RAMS RAMS RAMS"],
+  ["GB", "TB", "GB GB GB TB GB GB GB GB TB GB GB"],
+  ["TN", "BALT", "BALT BALT BALT BALT BALT BALT BALT BALT BALT BALT BALT"],
+  ["DAL", "HOU", "DAL HOU DAL HOU HOU DAL HOU HOU DAL DAL HOU"],
+  ["MIA", "MN", "MN MN MN MN MN MN MN MN MN MN MN"],
+  ["KC", "LV", "KC KC KC KC KC LV KC KC KC KC KC"],
+  ["DEN", "SF", "SF DEN DEN SF SF SF SF SF DEN SF SF"],
+  ["LAC", "SEAT", "SEAT SEAT SEAT SEAT SEAT SEAT SEAT SEAT SEAT SEAT SEAT"],
+  ["DET", "CAR", "DET DET CAR DET DET DET DET DET DET DET DET"],
+  ["ATL", "NO", "NO NO NO NO ATL NO ATL NO ATL NO NO"],
+];
+
+export const mockWeek4Games: Game[] = week4Picks.map(([away, home, picks]) => ({
+  away,
+  home,
+  picks: picks.split(" ").map((pick, i) => ({
+    player: PLAYERS[i],
+    pick: pick as RickTeamCode,
+  })),
+}));
+
+export const mockWeek4ProjectedMNFPoints: PlayersProjectedMNFPoints = {
+  Adam: 46,
+  Alex: 48,
+  Ben: 39,
+  Kylee: 44,
+  Nick: 42,
+  Rick: 39,
+  Ricky: 49,
+  Tammy: 38,
+  Connor: 46,
+  Noah: 45,
+  Jake: 45,
+};
+
+const week4Results: [string, string, number, number][] = [
+  ["PIT @ CLE", "2026-10-02T00:15Z", 24, 27],
+  ["IND VS WSH", "2026-10-04T13:30Z", 30, 13],
+  ["NE @ BUF", "2026-10-04T17:00Z", 29, 26],
+  ["NYJ @ CHI", "2026-10-04T17:00Z", 12, 23],
+  ["JAX @ CIN", "2026-10-04T17:00Z", 22, 17],
+  ["ARI @ NYG", "2026-10-04T17:00Z", 24, 36],
+  ["LAR @ PHI", "2026-10-04T17:00Z", 24, 20],
+  ["GB @ TB", "2026-10-04T17:00Z", 17, 14],
+  ["TEN @ BAL", "2026-10-04T17:00Z", 18, 24],
+  ["DAL @ HOU", "2026-10-04T17:00Z", 34, 30],
+  ["MIA @ MIN", "2026-10-04T20:05Z", 10, 15],
+  ["KC @ LV", "2026-10-04T20:25Z", 30, 27],
+  ["DEN @ SF", "2026-10-04T20:25Z", 14, 24],
+  ["LAC @ SEA", "2026-10-04T20:25Z", 23, 30],
+  ["DET @ CAR", "2026-10-05T00:20Z", 26, 32],
+  ["ATL @ NO", "2026-10-06T00:15Z", 0, 0],
+];
+
+type Week4GameState = {
+  description: "Final" | "In Progress" | "Scheduled";
+  away?: number;
+  home?: number;
+};
+
+// Week 4's scores with ATL @ NO scheduled, and any game overridden by its
+// ESPN short name (e.g. to leave a second game unfinished).
+export const createWeek4Scores = (
+  overrides: Record<string, Week4GameState> = { "ATL @ NO": { description: "Scheduled" } }
+): ESPNScoresResponse => ({
+  events: week4Results.map(([shortName, date, away, home]) => {
+    const override = overrides[shortName];
+    const description = override?.description ?? "Final";
+    return {
+      shortName,
+      date,
+      status: {
+        type: { description, completed: description === "Final" },
+        period: description === "Scheduled" ? 0 : 4,
+        displayClock: "0:00",
+      },
+      competitions: [{
+        competitors: [
+          { homeAway: "home", score: String(override?.home ?? (override ? 0 : home)) },
+          { homeAway: "away", score: String(override?.away ?? (override ? 0 : away)) },
+        ],
+      }],
+    };
+  }),
+});

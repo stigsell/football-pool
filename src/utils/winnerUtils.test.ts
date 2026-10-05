@@ -1,6 +1,7 @@
 import {
   getWinners,
   getTiebreakWinners,
+  getTiebreakWinnersForTotal,
   getEliminatedPlayers,
 } from "./winnerUtils";
 import {
@@ -59,6 +60,26 @@ describe("getWinners", () => {
     ];
     const winners = getWinners(allTied);
     expect(winners).toEqual(["Nick", "Adam", "Alex"]);
+  });
+});
+
+describe("getTiebreakWinnersForTotal", () => {
+  it("returns the player closest to the given total", () => {
+    const projectedPoints: PlayersProjectedMNFPoints = { Nick: 42, Ben: 39, Noah: 45 };
+    const winners: Player[] = ["Nick", "Ben", "Noah"];
+    expect(getTiebreakWinnersForTotal(41, winners, projectedPoints)).toEqual(["Nick"]);
+    expect(getTiebreakWinnersForTotal(40, winners, projectedPoints)).toEqual(["Ben"]);
+  });
+
+  it("returns every player tied for closest", () => {
+    const projectedPoints: PlayersProjectedMNFPoints = { Ben: 39, Noah: 45 };
+    expect(
+      getTiebreakWinnersForTotal(42, ["Ben", "Noah"], projectedPoints)
+    ).toEqual(["Ben", "Noah"]);
+  });
+
+  it("returns every tied player when none have projections", () => {
+    expect(getTiebreakWinnersForTotal(42, ["Ben", "Noah"], {})).toEqual(["Ben", "Noah"]);
   });
 });
 

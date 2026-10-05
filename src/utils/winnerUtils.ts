@@ -21,9 +21,20 @@ export const getTiebreakWinners = (
   mnfGame: ESPNEvent,
   winners: Player[],
   playersProjectedMNFPoints: PlayersProjectedMNFPoints
-): Player[] => {
-  const totalPoints = getAwayScore(mnfGame) + getHomeScore(mnfGame);
+): Player[] =>
+  getTiebreakWinnersForTotal(
+    getAwayScore(mnfGame) + getHomeScore(mnfGame),
+    winners,
+    playersProjectedMNFPoints
+  );
 
+// Players without a projection never win a tiebreak against players with one;
+// if nobody has a projection, every tied player wins.
+export const getTiebreakWinnersForTotal = (
+  totalPoints: number,
+  winners: Player[],
+  playersProjectedMNFPoints: PlayersProjectedMNFPoints
+): Player[] => {
   const distanceFromEstimatedToActualPerPlayer: Record<string, number> = {};
   for (const winner of winners) {
     const projected = playersProjectedMNFPoints[winner];

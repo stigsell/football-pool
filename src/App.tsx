@@ -4,6 +4,7 @@ import FileGetter from "./FileGetter/FileGetter";
 import ScoreFetcher from "./ScoreFetcher/ScoreFetcher";
 import Leaderboard from "./Leaderboard/Leaderboard";
 import Tiebreaker from "./Tiebreaker/Tiebreaker";
+import WinScenarios from "./WinScenarios/WinScenarios";
 import Games from "./Games/Games";
 import SeasonResults from "./SeasonResults/SeasonResults";
 
@@ -40,6 +41,10 @@ function App() {
               playersProjectedMNFPoints={projectedMNFPoints}
             />
             <Games games={games} />
+            <WinScenarios
+              games={games}
+              playersProjectedMNFPoints={projectedMNFPoints}
+            />
             <Tiebreaker
               games={games}
               playersProjectedMNFPoints={projectedMNFPoints}
