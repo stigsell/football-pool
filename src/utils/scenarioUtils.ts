@@ -2,7 +2,7 @@ import { PLAYERS, LATE_PICK } from "./constants";
 import type { Player, RickTeamCode } from "./constants";
 import { calculateAllPlayersScores, getAwayScore, getHomeScore } from "./scoreUtils";
 import { getGame, getMNFGame, getRemainingGames } from "./gameEventUtils";
-import { getWinners, getTiebreakWinnersForTotal } from "./winnerUtils";
+import { getWinners, getTiebreakWinnersForTotal, getEliminatedPlayers } from "./winnerUtils";
 import type { ESPNScoresResponse, Game, PlayersProjectedMNFPoints } from "../types";
 
 // What must happen ("ATL wins and total points are 41–43") and what it gets
@@ -16,6 +16,8 @@ export interface WinScenario {
   player: Player;
   // Each way the player can win, any one of which is enough.
   needs: WinNeed[];
+  // Whether the player wins, with the same split, whatever happens now.
+  clinched: boolean;
 }
 
 // One way a player can win: the teams that must win, the range of MNF total
@@ -81,7 +83,7 @@ const formatRange = (low: number, high: number, minTotal: number, maxTotal: numb
 const formatCondition = ({ teams, totalRange }: WinCondition): string => {
   const parts = teams.map((team) => team + " wins");
   if (totalRange) parts.push("total points are " + totalRange);
-  return parts.length === 0 ? "any result" : joinList(parts);
+  return parts.length === 0 ? "Clinched" : joinList(parts);
 };
 
 // One line per condition, each with who the win is split with. Conditions
@@ -254,8 +256,58 @@ export const getWinScenarios = (
       if (hasOutrightWin(a) !== hasOutrightWin(b)) return hasOutrightWin(a) ? -1 : 1;
       return a.localeCompare(b);
     })
-    .map((player) => ({
-      player,
-      needs: formatNeeds(conditions.get(player) as WinCondition[]),
-    }));
+    .map((player) => {
+      const playerConditions = conditions.get(player) as WinCondition[];
+      return {
+        player,
+        needs: formatNeeds(playerConditions),
+        clinched:
+          playerConditions.length === 1 &&
+          playerConditions[0].teams.length === 0 &&
+          playerConditions[0].totalRange === undefined,
+      };
+    });
+};
+
+// Trying every outcome is quick for a handful of games but doubles with each
+// one; earlier in the week the tiebreaker rarely decides who is still alive.
+const MAX_GAMES_FOR_EXACT_ELIMINATION = 4;
+
+/**
+ * The week's winners once nothing left to play can change them: every player
+ * who can still win has clinched, with the same split. That covers a finished
+ * week too, and can come before MNF ends once the tiebreaker is settled.
+ * Empty while the result is still open.
+ */
+export const getClinchedWinners = (
+  games: Game[],
+  scores: ESPNScoresResponse,
+  playersProjectedMNFPoints: PlayersProjectedMNFPoints
+): Player[] => {
+  if (getRemainingGames(games, scores).length > MAX_GAMES_FOR_EXACT_ELIMINATION) return [];
+  const scenarios = getWinScenarios(games, scores, playersProjectedMNFPoints);
+  return scenarios.every((scenario) => scenario.clinched)
+    ? scenarios.map((scenario) => scenario.player)
+    : [];
+};
+
+/**
+ * Players who cannot win the week. Late in the week this counts the
+ * tiebreaker too, so a player whose winning MNF totals are already out of
+ * reach is eliminated, matching the Win Scenarios table. With more games left
+ * it falls back to comparing correct picks alone.
+ */
+export const getEliminatedPlayersWithTiebreak = (
+  games: Game[] | undefined,
+  scores: ESPNScoresResponse | undefined,
+  playersProjectedMNFPoints: PlayersProjectedMNFPoints
+): Player[] => {
+  if (!games || !scores) return [];
+  if (getRemainingGames(games, scores).length > MAX_GAMES_FOR_EXACT_ELIMINATION) {
+    return getEliminatedPlayers(games, scores);
+  }
+  const contenders = getWinScenarios(games, scores, playersProjectedMNFPoints).map(
+    (scenario) => scenario.player
+  );
+  return PLAYERS.filter((player) => !contenders.includes(player));
 };

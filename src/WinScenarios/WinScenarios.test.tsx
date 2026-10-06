@@ -97,6 +97,14 @@ describe("WinScenarios", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("is hidden once the winners have clinched, even before MNF ends", () => {
+    // MNF at 44 points: Noah and Jake split whatever happens now.
+    const { container } = renderWith(
+      createWeek4Scores({ "ATL @ NO": { description: "In Progress", away: 20, home: 24 } })
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it("renders nothing before scores load", () => {
     const { container } = renderWith(undefined);
     expect(container).toBeEmptyDOMElement();

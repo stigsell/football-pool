@@ -1,12 +1,10 @@
 import useWindowSize from "react-use/lib/useWindowSize";
 import Confetti from "react-confetti";
 
-import { getMNFGame, areAllGamesFinished } from "../utils/gameEventUtils";
 import {
-  getWinners,
-  getTiebreakWinners,
-  getEliminatedPlayers,
-} from "../utils/winnerUtils";
+  getClinchedWinners,
+  getEliminatedPlayersWithTiebreak,
+} from "../utils/scenarioUtils";
 import { calculateAllPlayersScores } from "../utils/scoreUtils";
 import type { Game, ESPNScoresResponse, PlayersProjectedMNFPoints } from "../types";
 
@@ -22,23 +20,20 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardPr
   if (!scores) return null;
 
   const allPlayersScores = calculateAllPlayersScores(games, scores);
-  const eliminatedPlayers = getEliminatedPlayers(games, scores);
-  const allGamesFinished = areAllGamesFinished(scores, games);
-
-  const potentialWinners = allGamesFinished
-    ? getWinners(allPlayersScores)
-    : [];
-
-  const mnfGame = getMNFGame(scores);
-  const winners =
-    potentialWinners.length > 0 && mnfGame
-      ? getTiebreakWinners(mnfGame, potentialWinners, playersProjectedMNFPoints)
-      : potentialWinners;
+  const eliminatedPlayers = getEliminatedPlayersWithTiebreak(
+    games,
+    scores,
+    playersProjectedMNFPoints
+  );
+  // Decided once nothing left to play can change the winners, which can be
+  // before MNF ends when the tiebreaker is already settled.
+  const winners = getClinchedWinners(games, scores, playersProjectedMNFPoints);
+  const winnersDecided = winners.length > 0;
 
   return (
     <>
       <h2>Leaderboard</h2>
-      {allGamesFinished ? (
+      {winnersDecided ? (
         <Confetti
           width={width}
           height={height}
@@ -66,7 +61,7 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardPr
             {allPlayersScores.map((score) => (
               <tr key={score[0]}>
                 <td>
-                  {winners.includes(score[0]) && allGamesFinished ? "🏆" : null}
+                  {winners.includes(score[0]) ? "🏆" : null}
                   {eliminatedPlayers.includes(score[0]) ? "❌" : null}
                 </td>
                 <td>{score[0]}</td>

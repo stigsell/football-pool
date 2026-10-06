@@ -17,8 +17,10 @@ function WinScenarios({ games, scores, playersProjectedMNFPoints }: WinScenarios
   const remainingGames = getRemainingGames(games, scores).length;
   if (remainingGames === 0 || remainingGames > MAX_REMAINING_GAMES) return null;
 
+  // Hidden once only one player can win, or once the winners have clinched.
   const scenarios = getWinScenarios(games, scores, playersProjectedMNFPoints);
   if (scenarios.length < 2) return null;
+  if (scenarios.every((scenario) => scenario.clinched)) return null;
 
   return (
     <>

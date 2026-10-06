@@ -66,11 +66,7 @@ export const LATE_PICK = "X";
 
 export type PlayerPick = RickTeamCode | typeof LATE_PICK;
 
-// Type-safe Maps for O(1) lookups
+// Type-safe Map for O(1) lookups
 export const RICK_TO_ESPN_MAP = new Map<RickTeamCode, ESPNTeamCode>(
   RICK_TO_ESPN_ENTRIES.map(([rick, espn]) => [rick, espn])
-);
-
-export const ESPN_TO_RICK_MAP = new Map<ESPNTeamCode, RickTeamCode>(
-  RICK_TO_ESPN_ENTRIES.map(([rick, espn]) => [espn, rick])
 );

@@ -1,5 +1,5 @@
 import { PLAYERS } from "../utils/constants";
-import { getEliminatedPlayers } from "../utils/winnerUtils";
+import { getEliminatedPlayersWithTiebreak } from "../utils/scenarioUtils";
 import type { Game, ESPNScoresResponse, PlayersProjectedMNFPoints } from "../types";
 
 interface TiebreakerProps {
@@ -9,7 +9,11 @@ interface TiebreakerProps {
 }
 
 function Tiebreaker({ playersProjectedMNFPoints, games, scores }: TiebreakerProps) {
-  const eliminatedPlayers = getEliminatedPlayers(games, scores);
+  const eliminatedPlayers = getEliminatedPlayersWithTiebreak(
+    games,
+    scores,
+    playersProjectedMNFPoints
+  );
 
   // Eliminated players go last; within each group, sort low to high by
   // estimated points, with players who have no projection after those.

@@ -1,4 +1,8 @@
-import { getWinScenarios } from "./scenarioUtils";
+import {
+  getWinScenarios,
+  getClinchedWinners,
+  getEliminatedPlayersWithTiebreak,
+} from "./scenarioUtils";
 import {
   mockWeek4Games,
   mockWeek4ProjectedMNFPoints,
@@ -110,8 +114,8 @@ describe("getWinScenarios", () => {
       mockWeek4ProjectedMNFPoints
     );
     expect(scenarios).toEqual([
-      { player: "Jake", needs: ["any result (split with Noah)"] },
-      { player: "Noah", needs: ["any result (split with Jake)"] },
+      { player: "Jake", needs: ["Clinched (split with Noah)"] },
+      { player: "Noah", needs: ["Clinched (split with Jake)"] },
     ]);
   });
 
@@ -201,7 +205,87 @@ describe("getWinScenarios", () => {
     const scenarios = getWinScenarioText([], { events: [] }, mockWeek4ProjectedMNFPoints);
     expect(scenarios).toHaveLength(11);
     expect(scenarios[0].needs).toEqual([
-      "any result (split with Alex, Ben, Kylee, Nick, Rick, Ricky, Tammy, Connor, Noah, and Jake)",
+      "Clinched (split with Alex, Ben, Kylee, Nick, Rick, Ricky, Tammy, Connor, Noah, and Jake)",
     ]);
+  });
+});
+
+describe("getEliminatedPlayersWithTiebreak", () => {
+  it("eliminates everyone with no winning scenario left", () => {
+    const eliminated = getEliminatedPlayersWithTiebreak(
+      mockWeek4Games,
+      createWeek4Scores({ "ATL @ NO": { description: "In Progress", away: 20, home: 24 } }),
+      mockWeek4ProjectedMNFPoints
+    );
+    expect(eliminated).toEqual([
+      "Adam", "Alex", "Ben", "Kylee", "Nick", "Rick", "Ricky", "Tammy", "Connor",
+    ]);
+  });
+
+  it("compares correct picks alone when more than four games are left", () => {
+    const unfinished = ["KC @ LV", "DEN @ SF", "LAC @ SEA", "DET @ CAR", "ATL @ NO"];
+    const eliminated = getEliminatedPlayersWithTiebreak(
+      mockWeek4Games,
+      createWeek4Scores(
+        Object.fromEntries(unfinished.map((name) => [name, { description: "Scheduled" as const }]))
+      ),
+      mockWeek4ProjectedMNFPoints
+    );
+    // Picks alone: Ben, Rick and Nick stay alive, though the tiebreaker may
+    // rule them out later.
+    expect(eliminated.sort()).toEqual(["Adam", "Connor", "Kylee", "Ricky", "Tammy"]);
+  });
+
+  it("eliminates nobody before games and scores are loaded", () => {
+    expect(getEliminatedPlayersWithTiebreak(undefined, undefined, {})).toEqual([]);
+  });
+});
+
+describe("getClinchedWinners", () => {
+  const mnfAt44 = () =>
+    createWeek4Scores({ "ATL @ NO": { description: "In Progress", away: 20, home: 24 } });
+
+  it("names the winners before MNF ends once the tiebreaker is settled", () => {
+    expect(
+      getClinchedWinners(mockWeek4Games, mnfAt44(), mockWeek4ProjectedMNFPoints)
+    ).toEqual(["Jake", "Noah"]);
+    expect(
+      getWinScenarios(mockWeek4Games, mnfAt44(), mockWeek4ProjectedMNFPoints).map(
+        (s) => s.clinched
+      )
+    ).toEqual([true, true]);
+  });
+
+  it("names the tiebreak winner once every game is final", () => {
+    const scores = createWeek4Scores({
+      "ATL @ NO": { description: "Final", away: 21, home: 20 },
+    });
+    expect(getClinchedWinners(mockWeek4Games, scores, mockWeek4ProjectedMNFPoints)).toEqual([
+      "Nick",
+    ]);
+  });
+
+  it("is empty while the result is still open", () => {
+    expect(
+      getClinchedWinners(mockWeek4Games, createWeek4Scores(), mockWeek4ProjectedMNFPoints)
+    ).toEqual([]);
+  });
+
+  it("is empty while a winner's split still depends on the result", () => {
+    // MNF ended 21-19 (40 points) with DET @ CAR left: Rick always wins, but
+    // splits with Ben only if CAR wins.
+    const scores = createWeek4Scores({
+      "DET @ CAR": { description: "Scheduled" },
+      "ATL @ NO": { description: "Final", away: 21, home: 19 },
+    });
+    expect(getClinchedWinners(mockWeek4Games, scores, mockWeek4ProjectedMNFPoints)).toEqual([]);
+  });
+
+  it("is empty with more than four games left", () => {
+    const unfinished = ["KC @ LV", "DEN @ SF", "LAC @ SEA", "DET @ CAR", "ATL @ NO"];
+    const scores = createWeek4Scores(
+      Object.fromEntries(unfinished.map((name) => [name, { description: "Scheduled" as const }]))
+    );
+    expect(getClinchedWinners(mockWeek4Games, scores, mockWeek4ProjectedMNFPoints)).toEqual([]);
   });
 });

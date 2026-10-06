@@ -211,10 +211,18 @@ describe("Tiebreaker", () => {
         />
       );
 
-      // No games remain, so anyone below the high score is eliminated.
+      // No games remain, so everyone but the tiebreak winner is eliminated:
+      // MIA @ NE ended with 49 points, closest to Alex's 50.
       expect(getStruckThroughPlayers(container).sort()).toEqual([
         "Adam",
+        "Ben",
+        "Connor",
+        "Jake",
         "Kylee",
+        "Nick",
+        "Noah",
+        "Rick",
+        "Ricky",
         "Tammy",
       ]);
 
@@ -223,17 +231,17 @@ describe("Tiebreaker", () => {
         (row) => row.querySelectorAll("td")[0].textContent
       );
       expect(names).toEqual([
+        "Alex",
         "Noah",
+        "Tammy",
         "Ben",
         "Rick",
+        "Adam",
         "Ricky",
         "Jake",
-        "Alex",
+        "Kylee",
         "Nick",
         "Connor",
-        "Tammy",
-        "Adam",
-        "Kylee",
       ]);
 
       // Both cells in an eliminated row are struck through.

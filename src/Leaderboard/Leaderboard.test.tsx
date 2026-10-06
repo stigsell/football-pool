@@ -3,6 +3,11 @@ import { render, screen } from "@testing-library/react";
 import Leaderboard from "./Leaderboard";
 import { Game, ESPNScoresResponse, PlayersProjectedMNFPoints, Pick } from "../types";
 import { PLAYERS, Player, RickTeamCode } from "../utils/constants";
+import {
+  mockWeek4Games,
+  mockWeek4ProjectedMNFPoints,
+  createWeek4Scores,
+} from "../__mocks__/testData";
 
 // Mock external libraries (not internal components)
 jest.mock("react-confetti", () => {
@@ -178,12 +183,59 @@ describe("Leaderboard", () => {
     // Adam, Kylee and Tammy picked BUF (wrong) -> 1 correct after 2 games.
     // Others have 2 correct. Only DET @ CHI remains, and the trailing three
     // picked DET just like the leaders, so that game cannot close the gap.
-    const { container } = renderLeaderboard({ scores: scoresWithOneRemaining });
+    // With no projections the tiebreaker cannot separate the leaders.
+    const { container } = renderLeaderboard({
+      scores: scoresWithOneRemaining,
+      projectedPoints: {},
+    });
 
     const eliminated = Array.from(container.querySelectorAll("tbody tr"))
       .filter((row) => row.querySelectorAll("td")[0].textContent === "❌")
       .map((row) => row.querySelectorAll("td")[1].textContent);
     expect(eliminated.sort()).toEqual(["Adam", "Kylee", "Tammy"]);
+  });
+
+  it("eliminates leaders whose winning MNF totals are already out of reach", () => {
+    // Week 4 with ATL @ NO in progress at 44 points: only Noah and Jake can
+    // still win, so Ben, Rick and Nick are out despite their picks.
+    const { container } = renderLeaderboard({
+      games: mockWeek4Games,
+      scores: createWeek4Scores({
+        "ATL @ NO": { description: "In Progress", away: 20, home: 24 },
+      }),
+      projectedPoints: mockWeek4ProjectedMNFPoints,
+    });
+
+    const notEliminated = Array.from(container.querySelectorAll("tbody tr"))
+      .filter((row) => row.querySelectorAll("td")[0].textContent !== "❌")
+      .map((row) => row.querySelectorAll("td")[1].textContent);
+    expect(notEliminated.sort()).toEqual(["Jake", "Noah"]);
+  });
+
+  it("shows trophies and confetti before MNF ends once the winners have clinched", () => {
+    const { container } = renderLeaderboard({
+      games: mockWeek4Games,
+      scores: createWeek4Scores({
+        "ATL @ NO": { description: "In Progress", away: 20, home: 24 },
+      }),
+      projectedPoints: mockWeek4ProjectedMNFPoints,
+    });
+
+    expect(screen.getByTestId("confetti")).toBeInTheDocument();
+    const trophies = Array.from(container.querySelectorAll("tbody tr"))
+      .filter((row) => row.querySelectorAll("td")[0].textContent === "🏆")
+      .map((row) => row.querySelectorAll("td")[1].textContent);
+    expect(trophies.sort()).toEqual(["Jake", "Noah"]);
+  });
+
+  it("holds the trophies while MNF can still change the winners", () => {
+    renderLeaderboard({
+      games: mockWeek4Games,
+      scores: createWeek4Scores(),
+      projectedPoints: mockWeek4ProjectedMNFPoints,
+    });
+    expect(screen.queryByTestId("confetti")).not.toBeInTheDocument();
+    expect(screen.queryByText("🏆")).not.toBeInTheDocument();
   });
 
   it("does not eliminate a trailing player who can still close the gap", () => {
