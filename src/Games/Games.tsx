@@ -9,30 +9,36 @@ import {
 
 import { formatTwoScores } from "../utils/formatUtils";
 import { LATE_PICK } from "../utils/constants";
+import { gameKey } from "../utils/simulationUtils";
+import type { SimulatedWinners } from "../utils/simulationUtils";
+import type { RickTeamCode } from "../utils/constants";
 import type { Game, ESPNScoresResponse } from "../types";
 
 interface GamesProps {
   games: Game[];
   scores?: ESPNScoresResponse;
+  simulated?: SimulatedWinners;
+  onSimulate?: (game: Game, team: RickTeamCode) => void;
+  onResetSimulations?: () => void;
 }
 
-function Games({ games, scores }: GamesProps) {
+function Games({ games, scores, simulated = {}, onSimulate, onResetSimulations }: GamesProps) {
   const [showCompletedGames, setShowCompletedGames] = useState(false);
   const [showUnanimousGames, setShowUnanimousGames] = useState(false);
 
   if (!scores) return null;
 
-  const completedCount = games.filter(
-    (game) => getGame(game.home, game.away, scores)?.status.type.completed,
-  ).length;
+  // A simulated game only looks finished, so it still counts as upcoming.
+  const isSimulated = (game: Game) => gameKey(game) in simulated;
+  const isCompleted = (game: Game) =>
+    !isSimulated(game) && !!getGame(game.home, game.away, scores)?.status.type.completed;
+
+  const completedCount = games.filter(isCompleted).length;
   const unanimousCount = games.filter((game) => isGameUnanimous(game.picks)).length;
 
   const filteredByCompleted = showCompletedGames
     ? games
-    : games.filter((game) => {
-        const event = getGame(game.home, game.away, scores);
-        return event ? !event.status.type.completed : true;
-      });
+    : games.filter((game) => !isCompleted(game));
 
   const filteredByUnanimousAndCompleted = showUnanimousGames
     ? filteredByCompleted
@@ -59,31 +65,52 @@ function Games({ games, scores }: GamesProps) {
         />
         <label htmlFor="showUnanimousGames">Show Unanimous Games ({unanimousCount})</label>
       </div>
+      {onResetSimulations && Object.keys(simulated).length > 0 && (
+        <div className="Filter Filter--centered">
+          <button type="button" className="Game__team" onClick={onResetSimulations}>
+            Reset simulation(s)
+          </button>
+        </div>
+      )}
       {filteredByUnanimousAndCompleted.map((game) => {
         const score = checkScore(game, scores);
         if (!score) return null;
         const event = getGame(game.home, game.away, scores);
+        const simulatedWinner = simulated[gameKey(game)];
+        const canSimulate = !!onSimulate && !!event && (isSimulated(game) || !event.status.type.completed);
+        const teamHeader = (team: RickTeamCode) =>
+          canSimulate ? (
+            <button
+              type="button"
+              className={
+                "Game__team" + (simulatedWinner === team ? " Game__team--selected" : "")
+              }
+              aria-pressed={simulatedWinner === team}
+              title={`Simulate ${team} winning`}
+              onClick={() => onSimulate(game, team)}
+            >
+              {team}
+            </button>
+          ) : (
+            <b>{team}</b>
+          );
 
         return (
           <div className="Game" key={game.home + game.away}>
             <table className="Game__table">
               <thead>
                 <tr>
+                  <td>{teamHeader(game.away)}</td>
                   <td>
-                    <b>{game.away}</b>
+                    <b>{simulatedWinner ? "Simulated" : score.status}</b>
                   </td>
-                  <td>
-                    <b>{score.status}</b>
-                  </td>
-                  <td>
-                    <b>{game.home}</b>
-                  </td>
+                  <td>{teamHeader(game.home)}</td>
                 </tr>
                 <tr>
                   <td></td>
                   <td>
                     <b>
-                      {event && getEventStatus(event) === "Scheduled"
+                      {simulatedWinner || (event && getEventStatus(event) === "Scheduled")
                         ? ""
                         : formatTwoScores(score.away_score, score.home_score)}
                     </b>

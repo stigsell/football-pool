@@ -104,3 +104,21 @@
   background-color: var(--color-lose);
   color: var(--color-lose-text);
 }
+
+.Game__team {
+  font: inherit;
+  font-weight: bold;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.Game__team--selected {
+  background-color: var(--color-win);
+  color: var(--color-win-text);
+}
+.Filter--centered {
+  text-align: center;
+}

@@ -5,6 +5,8 @@ export type GameStatus = 'Final' | 'In Progress' | 'Scheduled' | 'End of Period'
 
 // ESPN API Types
 export interface ESPNEvent {
+  // Set on a result the viewer simulated; its score is a placeholder.
+  simulated?: boolean;
   shortName: string;
   date: string;
   status: {

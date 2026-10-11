@@ -131,8 +131,12 @@ export const getWinScenarios = (
 
   // The MNF total only varies while that game is unfinished; afterwards (or
   // with no MNF game at all) a single total, or none, decides the tiebreak.
-  const mnfTotal = mnfEvent ? getAwayScore(mnfEvent) + getHomeScore(mnfEvent) : undefined;
-  const totalVaries = mnfEvent !== undefined && !mnfEvent.status.type.completed;
+  // A simulated MNF game has no real score, so its total stays open too.
+  const mnfSimulated = mnfEvent?.simulated === true;
+  const mnfTotal = mnfEvent
+    ? mnfSimulated ? 0 : getAwayScore(mnfEvent) + getHomeScore(mnfEvent)
+    : undefined;
+  const totalVaries = mnfEvent !== undefined && (mnfSimulated || !mnfEvent.status.type.completed);
   const projections = Object.values(playersProjectedMNFPoints).filter(
     (points): points is number => typeof points === "number"
   );

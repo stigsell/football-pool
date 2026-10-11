@@ -11,10 +11,11 @@ import type { Game, ESPNScoresResponse, PlayersProjectedMNFPoints } from "../typ
 interface LeaderboardProps {
   games: Game[];
   scores?: ESPNScoresResponse;
+  isSimulating?: boolean;
   playersProjectedMNFPoints: PlayersProjectedMNFPoints;
 }
 
-function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardProps) {
+function Leaderboard({ games, scores, playersProjectedMNFPoints, isSimulating = false }: LeaderboardProps) {
   const { width, height } = useWindowSize();
 
   if (!scores) return null;
@@ -32,8 +33,8 @@ function Leaderboard({ games, scores, playersProjectedMNFPoints }: LeaderboardPr
 
   return (
     <>
-      <h2>Leaderboard</h2>
-      {winnersDecided ? (
+      <h2>{isSimulating ? "Leaderboard (simulated)" : "Leaderboard"}</h2>
+      {winnersDecided && !isSimulating ? (
         <Confetti
           width={width}
           height={height}

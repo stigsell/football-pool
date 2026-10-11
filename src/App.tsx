@@ -9,6 +9,9 @@ import Games from "./Games/Games";
 import SeasonResults from "./SeasonResults/SeasonResults";
 
 import "./App.css";
+import { gameKey } from "./utils/simulationUtils";
+import type { SimulatedWinners } from "./utils/simulationUtils";
+import type { RickTeamCode } from "./utils/constants";
 import type { Game, PlayersProjectedMNFPoints } from "./types";
 
 function App() {
@@ -16,6 +19,15 @@ function App() {
   const [weekNum, setWeekNum] = useState<number>(0);
   const [games, setGames] = useState<Game[]>([]);
   const [projectedMNFPoints, setProjectedMNFPoints] = useState<PlayersProjectedMNFPoints>({});
+
+  const [simulated, setSimulated] = useState<SimulatedWinners>({});
+
+  // Picking the team that is already chosen clears the simulation.
+  const toggleSimulatedWinner = (game: Game, team: RickTeamCode) =>
+    setSimulated((current) => {
+      const { [gameKey(game)]: chosen, ...rest } = current;
+      return chosen === team ? rest : { ...rest, [gameKey(game)]: team };
+    });
 
   return (
     <div className="App">
@@ -35,12 +47,18 @@ function App() {
           <h2>{weekNum > 0 && "Week " + weekNum}</h2>
           {/* One fetcher for the whole page: it hands the same scores to
               every child, so the week's scores are fetched once. */}
-          <ScoreFetcher weekNumber={weekNum}>
+          <ScoreFetcher weekNumber={weekNum} games={games} simulated={simulated}>
             <Leaderboard
               games={games}
               playersProjectedMNFPoints={projectedMNFPoints}
+              isSimulating={Object.keys(simulated).length > 0}
             />
-            <Games games={games} />
+            <Games
+              games={games}
+              simulated={simulated}
+              onSimulate={toggleSimulatedWinner}
+              onResetSimulations={() => setSimulated({})}
+            />
             <WinScenarios
               games={games}
               playersProjectedMNFPoints={projectedMNFPoints}
