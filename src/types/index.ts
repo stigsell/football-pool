@@ -14,6 +14,20 @@ export interface ESPNEvent {
   };
   competitions: [{
     competitors: Array<{ homeAway: 'home' | 'away'; score: string }>;
+    // Present only before kickoff.
+    odds?: Array<{
+      overUnder?: number;
+      moneyline?: {
+        home?: { close?: { odds?: string } };
+        away?: { close?: { odds?: string } };
+      };
+    }>;
+    // Present only while the game is in progress.
+    situation?: {
+      lastPlay?: {
+        probability?: { homeWinPercentage: number; awayWinPercentage: number };
+      };
+    };
   }];
 }
 
