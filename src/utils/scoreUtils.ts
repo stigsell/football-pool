@@ -7,7 +7,7 @@ import {
   isGameInProgress,
   getEventStatus,
 } from "./gameEventUtils";
-import { formatInProgressGameClock } from "./formatUtils";
+import { formatInProgressGameClock, formatKickoff } from "./formatUtils";
 import type { ESPNEvent, ESPNScoresResponse, Game, GameScore, Pick, PlayerScoreTuple } from "../types";
 
 const calculatePlayerTotalScore = (player: Player, games: Game[], scores: ESPNScoresResponse): number => {
@@ -68,7 +68,9 @@ export const checkScore = (game: Game, scores: ESPNScoresResponse): GameScore | 
   return {
     status: isGameInProgress(event)
       ? formatInProgressGameClock(event)
-      : getEventStatus(event),
+      : getEventStatus(event) === "Scheduled"
+        ? formatKickoff(event)
+        : getEventStatus(event),
     away_score: getAwayScore(event),
     home_score: getHomeScore(event),
   };

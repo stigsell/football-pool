@@ -1,4 +1,4 @@
-import { formatInProgressGameClock, formatTwoScores } from "./formatUtils";
+import { formatInProgressGameClock, formatKickoff, formatTwoScores } from "./formatUtils";
 import { ESPNEvent } from "../types";
 
 describe("formatInProgressGameClock", () => {
@@ -76,5 +76,12 @@ describe("formatTwoScores", () => {
 
   it("formats when home team is winning", () => {
     expect(formatTwoScores(7, 35)).toBe("7 - 35");
+  });
+});
+
+describe("formatKickoff", () => {
+  it("shows a 3-letter day and time without am/pm instead of 'Scheduled'", () => {
+    const event = { date: "2025-10-12T17:00Z" } as ESPNEvent;
+    expect(formatKickoff(event)).toMatch(/^[A-Z][a-z]{2} \d{1,2}:\d{2}$/);
   });
 });
