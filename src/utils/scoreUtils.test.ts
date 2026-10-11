@@ -66,8 +66,8 @@ describe("didHomeTeamWin", () => {
     expect(didHomeTeamWin(score)).toBe(false);
   });
 
-  it("returns false when game is Q2 0:00", () => {
-    const score: GameScore = { status: "Q2 0:00", away_score: 14, home_score: 21 };
+  it("returns false when game is Q2 • 0:00", () => {
+    const score: GameScore = { status: "Q2 • 0:00", away_score: 14, home_score: 21 };
     expect(didHomeTeamWin(score)).toBe(false);
   });
 });
@@ -179,7 +179,7 @@ describe("checkScore", () => {
       ],
     };
     const result = checkScore(game("KC", "BUF"), scoresWithInProgress as any);
-    expect(result?.status).toBe("Q2 5:30");
+    expect(result?.status).toBe("Q2 • 5:30");
     expect(result?.away_score).toBe(10);
     expect(result?.home_score).toBe(14);
   });

@@ -71,8 +71,8 @@ describe("Games", () => {
 
   it("renders filter checkboxes", () => {
     render(<Games games={mockGames} scores={mockScores} />);
-    expect(screen.getByLabelText("Show Completed Games")).toBeInTheDocument();
-    expect(screen.getByLabelText("Show Unanimous Games")).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Show Completed Games \(\d+\)$/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Show Unanimous Games \(\d+\)$/)).toBeInTheDocument();
   });
 
   it("hides completed games by default", () => {
@@ -86,7 +86,7 @@ describe("Games", () => {
   it("shows completed games when checkbox is checked", () => {
     render(<Games games={mockGames} scores={mockScores} />);
 
-    const checkbox = screen.getByLabelText("Show Completed Games");
+    const checkbox = screen.getByLabelText(/^Show Completed Games \(\d+\)$/);
     fireEvent.click(checkbox);
 
     // Now completed games should show (if non-unanimous)
@@ -106,9 +106,9 @@ describe("Games", () => {
     render(<Games games={mockGames} scores={mockScores} />);
 
     // First show completed games
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
     // Then show unanimous games
-    fireEvent.click(screen.getByLabelText("Show Unanimous Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Unanimous Games \(\d+\)$/));
 
     // Now all games should be visible (team names may appear multiple times)
     expect(screen.getAllByText("KC").length).toBeGreaterThan(0);
@@ -118,7 +118,7 @@ describe("Games", () => {
   it("displays game scores", () => {
     render(<Games games={mockGames} scores={mockScores} />);
 
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
 
     // KC game score: 24 - 27
     expect(screen.getByText("24 - 27")).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe("Games", () => {
   it("displays game status", () => {
     render(<Games games={mockGames} scores={mockScores} />);
 
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
 
     expect(screen.getByText("Final")).toBeInTheDocument();
   });
@@ -136,16 +136,16 @@ describe("Games", () => {
     render(<Games games={mockGames} scores={mockScores} />);
 
     // Show completed and unanimous to see all games
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
-    fireEvent.click(screen.getByLabelText("Show Unanimous Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
+    fireEvent.click(screen.getByLabelText(/^Show Unanimous Games \(\d+\)$/));
 
-    expect(screen.getByText("Q3 5:30")).toBeInTheDocument();
+    expect(screen.getByText("Q3 • 5:30")).toBeInTheDocument();
   });
 
   it("renders player picks for each game", () => {
     render(<Games games={mockGames} scores={mockScores} />);
 
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
 
     expect(screen.getByText("Nick")).toBeInTheDocument();
     expect(screen.getByText("Adam")).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe("Games", () => {
       <Games games={gamesWithLatePick} scores={mockScores} />
     );
 
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
 
     const lateCell = screen.getByText("Adam (X)");
     expect(lateCell).toBeInTheDocument();
@@ -180,7 +180,7 @@ describe("Games", () => {
   it("applies Game class to game containers", () => {
     const { container } = render(<Games games={mockGames} scores={mockScores} />);
 
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
 
     expect(container.querySelector(".Game")).toBeInTheDocument();
   });
@@ -188,7 +188,7 @@ describe("Games", () => {
   it("applies Game__table class to tables", () => {
     const { container } = render(<Games games={mockGames} scores={mockScores} />);
 
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
 
     expect(container.querySelector(".Game__table")).toBeInTheDocument();
   });
@@ -230,7 +230,7 @@ describe("Games", () => {
 
     const { container } = render(<Games games={games} scores={awayWinScores} />);
 
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
 
     const winCells = container.querySelectorAll(".Game__win");
     expect(winCells.length).toBeGreaterThan(0);
@@ -239,7 +239,7 @@ describe("Games", () => {
   it("applies Game__win class to correct picks when home team wins", () => {
     const { container } = render(<Games games={mockGames} scores={mockScores} />);
 
-    fireEvent.click(screen.getByLabelText("Show Completed Games"));
+    fireEvent.click(screen.getByLabelText(/^Show Completed Games \(\d+\)$/));
 
     // KC won at home, Nick and Alex picked KC
     const winCells = container.querySelectorAll(".Game__win");
@@ -249,7 +249,7 @@ describe("Games", () => {
   it("toggles showCompletedGames filter correctly", () => {
     render(<Games games={mockGames} scores={mockScores} />);
 
-    const checkbox = screen.getByLabelText("Show Completed Games");
+    const checkbox = screen.getByLabelText(/^Show Completed Games \(\d+\)$/);
 
     // Initially unchecked
     expect(checkbox).not.toBeChecked();
@@ -266,7 +266,7 @@ describe("Games", () => {
   it("toggles showUnanimousGames filter correctly", () => {
     render(<Games games={mockGames} scores={mockScores} />);
 
-    const checkbox = screen.getByLabelText("Show Unanimous Games");
+    const checkbox = screen.getByLabelText(/^Show Unanimous Games \(\d+\)$/);
 
     expect(checkbox).not.toBeChecked();
 

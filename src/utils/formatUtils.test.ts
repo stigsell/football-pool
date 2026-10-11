@@ -9,7 +9,7 @@ describe("formatInProgressGameClock", () => {
         displayClock: "12:34",
       },
     } as ESPNEvent;
-    expect(formatInProgressGameClock(event)).toBe("Q1 12:34");
+    expect(formatInProgressGameClock(event)).toBe("Q1 • 12:34");
   });
 
   it("formats Q4 with minimal time remaining", () => {
@@ -19,7 +19,7 @@ describe("formatInProgressGameClock", () => {
         displayClock: "0:05",
       },
     } as ESPNEvent;
-    expect(formatInProgressGameClock(event)).toBe("Q4 0:05");
+    expect(formatInProgressGameClock(event)).toBe("Q4 • 0:05");
   });
 
   it("formats halftime (end of period 2)", () => {
@@ -29,7 +29,7 @@ describe("formatInProgressGameClock", () => {
         displayClock: "0:00",
       },
     } as ESPNEvent;
-    expect(formatInProgressGameClock(event)).toBe("Q2 0:00");
+    expect(formatInProgressGameClock(event)).toBe("Q2 • 0:00");
   });
 
   it("formats Q3 with time remaining", () => {
@@ -39,7 +39,7 @@ describe("formatInProgressGameClock", () => {
         displayClock: "8:45",
       },
     } as ESPNEvent;
-    expect(formatInProgressGameClock(event)).toBe("Q3 8:45");
+    expect(formatInProgressGameClock(event)).toBe("Q3 • 8:45");
   });
 
   it("formats overtime period", () => {
@@ -49,7 +49,7 @@ describe("formatInProgressGameClock", () => {
         displayClock: "10:00",
       },
     } as ESPNEvent;
-    expect(formatInProgressGameClock(event)).toBe("Q5 10:00");
+    expect(formatInProgressGameClock(event)).toBe("OT • 10:00");
   });
 });
 

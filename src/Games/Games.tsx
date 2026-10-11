@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { getGame, isGameUnanimous } from "../utils/gameEventUtils";
+import { getEventStatus, getGame, isGameUnanimous } from "../utils/gameEventUtils";
 import {
   checkScore,
   didAwayTeamWin,
@@ -21,6 +21,11 @@ function Games({ games, scores }: GamesProps) {
   const [showUnanimousGames, setShowUnanimousGames] = useState(false);
 
   if (!scores) return null;
+
+  const completedCount = games.filter(
+    (game) => getGame(game.home, game.away, scores)?.status.type.completed,
+  ).length;
+  const unanimousCount = games.filter((game) => isGameUnanimous(game.picks)).length;
 
   const filteredByCompleted = showCompletedGames
     ? games
@@ -43,7 +48,7 @@ function Games({ games, scores }: GamesProps) {
           name="showCompletedGames"
           onChange={() => setShowCompletedGames(!showCompletedGames)}
         />
-        <label htmlFor="showCompletedGames">Show Completed Games</label>
+        <label htmlFor="showCompletedGames">Show Completed Games ({completedCount})</label>
       </div>
       <div className="Filter">
         <input
@@ -52,11 +57,12 @@ function Games({ games, scores }: GamesProps) {
           name="showUnanimousGames"
           onChange={() => setShowUnanimousGames(!showUnanimousGames)}
         />
-        <label htmlFor="showUnanimousGames">Show Unanimous Games</label>
+        <label htmlFor="showUnanimousGames">Show Unanimous Games ({unanimousCount})</label>
       </div>
       {filteredByUnanimousAndCompleted.map((game) => {
         const score = checkScore(game, scores);
         if (!score) return null;
+        const event = getGame(game.home, game.away, scores);
 
         return (
           <div className="Game" key={game.home + game.away}>
@@ -77,7 +83,9 @@ function Games({ games, scores }: GamesProps) {
                   <td></td>
                   <td>
                     <b>
-                      {formatTwoScores(score.away_score, score.home_score)}
+                      {event && getEventStatus(event) === "Scheduled"
+                        ? ""
+                        : formatTwoScores(score.away_score, score.home_score)}
                     </b>
                   </td>
                   <td></td>
