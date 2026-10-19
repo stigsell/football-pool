@@ -85,6 +85,28 @@
         "Jake"
       ],
       "latePicks": {}
+    },
+    {
+      "week": 5,
+      "correctPicks": {
+        "Adam": 8,
+        "Alex": 9,
+        "Ben": 10,
+        "Kylee": 11,
+        "Nick": 9,
+        "Rick": 6,
+        "Ricky": 8,
+        "Tammy": 9,
+        "Connor": 11,
+        "Noah": 9,
+        "Jake": 7
+      },
+      "winners": [
+        "Connor"
+      ],
+      "latePicks": {
+        "Jake": 1
+      }
     }
   ]
 }
