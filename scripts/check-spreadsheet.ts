@@ -125,11 +125,14 @@ export function checkSpreadsheet(filePath: string): string[] {
       const pick = value.toUpperCase().trim();
       // A late pick counts as wrong no matter who wins, so it's valid anywhere.
       if (pick !== away && pick !== home && pick !== LATE_PICK) {
-        // Suggestions must only ever come from the master team code list —
-        // away/home could themselves be typos, so they're not safe candidates.
+        // Suggest only the teams in this matchup. away/home could themselves be
+        // typos, so only use the ones that are valid codes; if neither is, fall
+        // back to the master list.
+        const matchupTeams = [away, home].filter((team) => TEAM_CODES.has(team));
+        const candidates = matchupTeams.length > 0 ? matchupTeams : TEAM_CODES;
         const reason = TEAM_CODES.has(pick)
           ? `is not one of the teams in this matchup (${gameLabel}).`
-          : `is not a recognized team code.${didYouMean(pick, TEAM_CODES)}`;
+          : `is not a recognized team code.${didYouMean(pick, candidates)}`;
         issues.push(`Row ${i + 3}: ${key}'s pick "${value}" ${reason}`);
       }
     }
