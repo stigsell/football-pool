@@ -5,6 +5,9 @@
  * match either team actually playing in that game (the classic typo shape:
  * "BART" for "BALT", "BUFF" for "BUF", etc). A late pick, recorded as the
  * LATE_PICK marker from constants.ts, is allowed on any game.
+ *
+ * Also checks the blank for the week after, which the Submit Picks page fills
+ * in, so a typo in a matchup is caught before anyone picks from it.
  */
 import * as fs from "fs";
 import * as path from "path";
@@ -62,6 +65,12 @@ export function findSpreadsheet(weekNum: number): string {
     throw new Error(`Spreadsheet not found for week ${weekNum}: ${filePath}`);
   }
   return filePath;
+}
+
+// The blank the Submit Picks page offers for a week, if it has been added.
+export function findBlankSpreadsheet(weekNum: number): string | undefined {
+  const filePath = path.join(ROOT, "public/blank-spreadsheets", `Week ${weekNum}.xlsx`);
+  return fs.existsSync(filePath) ? filePath : undefined;
 }
 
 export type SpreadsheetRow = { [key: string]: string | number | undefined };
@@ -142,17 +151,31 @@ export function checkSpreadsheet(filePath: string): string[] {
 }
 
 function main(): void {
-  const filePath = findSpreadsheet(CURRENT_WEEK);
-  const issues = checkSpreadsheet(filePath);
+  const blankPath = findBlankSpreadsheet(CURRENT_WEEK + 1);
+  const filePaths = [findSpreadsheet(CURRENT_WEEK), ...(blankPath ? [blankPath] : [])];
+  let failed = false;
 
-  if (issues.length > 0) {
-    console.error(`\nFound ${issues.length} issue(s) in "${path.basename(filePath)}":\n`);
-    issues.forEach((issue) => console.error(`  - ${issue}`));
+  for (const filePath of filePaths) {
+    const issues = checkSpreadsheet(filePath);
+    if (issues.length > 0) {
+      failed = true;
+      console.error(`\nFound ${issues.length} issue(s) in "${path.basename(filePath)}":\n`);
+      issues.forEach((issue) => console.error(`  - ${issue}`));
+      continue;
+    }
+    process.stdout.write(`Spreadsheet check passed: "${path.basename(filePath)}" has no typos.\n`);
+  }
+
+  if (failed) {
     console.error("\nFix the spreadsheet before starting the app.\n");
     process.exit(1);
   }
-
-  process.stdout.write(`Spreadsheet check passed: "${path.basename(filePath)}" has no typos.\n`);
+  if (!blankPath) {
+    console.warn(
+      `No blank for week ${CURRENT_WEEK + 1} in public/blank-spreadsheets, ` +
+        "so Submit Picks will say picks aren't open."
+    );
+  }
 }
 
 // Run as a CLI, or lend the helpers to scripts/advance-week.ts.

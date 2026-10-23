@@ -8,7 +8,8 @@
  *   2. Bumps CURRENT_WEEK in src/utils/constants.ts
  *   3. Copies the new spreadsheet into public/spreadsheets
  *   4. Checks the new spreadsheet for typos, refusing to run if it finds any
- *   5. Prints the git + deploy commands to finish the job
+ *   5. Warns if the Submit Picks page has no blank for the week after
+ *   6. Prints the git + deploy commands to finish the job
  *
  * Usage: npm run advance-week -- <path to next week's .xlsx> [--force]
  *
@@ -25,6 +26,7 @@ import * as path from "path";
 
 import {
   ROOT,
+  findBlankSpreadsheet,
   findSpreadsheet,
   checkSpreadsheet,
   readSpreadsheet,
@@ -302,7 +304,16 @@ async function main(): Promise<void> {
     `Copied spreadsheet to public/spreadsheets/${spreadsheetName(nextWeek)}.\n`
   );
 
-  // 5. Tell the user how to ship it.
+  // 5. Submit Picks offers the week after the one now being played.
+  if (!findBlankSpreadsheet(nextWeek + 1)) {
+    process.stdout.write(
+      `\nWarning: no blank for week ${nextWeek + 1}, so Submit Picks will say ` +
+        "picks aren't open. Add it with:\n" +
+        `  cp "<path to blank>/Week ${nextWeek + 1}.xlsx" public/blank-spreadsheets/\n`
+    );
+  }
+
+  // 6. Tell the user how to ship it.
   printNextSteps(nextWeek);
 }
 
