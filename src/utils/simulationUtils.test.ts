@@ -24,6 +24,19 @@ describe("applySimulatedWinners", () => {
   });
 });
 
+describe("applySimulatedWinners with other events", () => {
+  it("leaves events that were not simulated untouched", () => {
+    const other = { ...mockEventScheduled, shortName: "NYJ @ MIA" };
+    const result = applySimulatedWinners(
+      { events: [other, mockEventScheduled] },
+      [game],
+      { [gameKey(game)]: "LV" }
+    );
+    expect(result.events[0]).toBe(other);
+    expect(result.events[1].simulated).toBe(true);
+  });
+});
+
 describe("simulated events", () => {
   it("are flagged so the MNF total is not treated as real", () => {
     const result = applySimulatedWinners(scores, [game], { [gameKey(game)]: "LV" });

@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import SubmitPicks from "./SubmitPicks";
 import { CURRENT_WEEK } from "../utils/constants";
@@ -31,23 +31,10 @@ const fillForm = (player = "Nick", points = "42") => {
   fireEvent.change(screen.getByRole("spinbutton"), { target: { value: points } });
 };
 
-const setPhone = (isPhone: boolean) => {
-  window.matchMedia = jest.fn().mockReturnValue({ matches: isPhone }) as jest.Mock;
-  Object.defineProperty(navigator, "canShare", {
-    configurable: true,
-    value: isPhone ? jest.fn().mockReturnValue(true) : undefined,
-  });
-  Object.defineProperty(navigator, "share", {
-    configurable: true,
-    value: isPhone ? jest.fn().mockResolvedValue(undefined) : undefined,
-  });
-};
-
 describe("SubmitPicks", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
-    setPhone(false);
     global.fetch = jest.fn(blankResponse) as jest.Mock;
     URL.createObjectURL = jest.fn(() => "blob:picks");
     URL.revokeObjectURL = jest.fn();
@@ -122,37 +109,59 @@ describe("SubmitPicks", () => {
     expect(screen.getByRole("button", { name: "Download" })).toBeEnabled();
   });
 
-  it("hides Send Email off a phone", async () => {
-    render(<SubmitPicks />);
-    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
-    expect(screen.queryByRole("button", { name: "Send Email" })).not.toBeInTheDocument();
-  });
-
-  it("shares the filled spreadsheet from a phone", async () => {
-    setPhone(true);
-    render(<SubmitPicks />);
-    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
-    fillForm("Tammy");
-
-    fireEvent.click(screen.getByRole("button", { name: "Send Email" }));
-
-    await waitFor(() => expect(navigator.share).toHaveBeenCalled());
-    const { files } = (navigator.share as jest.Mock).mock.calls[0][0] as { files: File[] };
-    expect(files[0].name).toBe(`Week ${PICKS_WEEK} - Tammy.xlsx`);
-  });
-
-  it("stays quiet when the share sheet is closed", async () => {
-    setPhone(true);
-    (navigator.share as jest.Mock).mockRejectedValue(
-      Object.assign(new Error("closed"), { name: "AbortError" })
-    );
+  it("shows an error when the spreadsheet can't be built for download", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     render(<SubmitPicks />);
     await screen.findByText(`Week ${PICKS_WEEK} Picks`);
     fillForm();
+    (URL.createObjectURL as jest.Mock).mockImplementation(() => {
+      throw new Error("no blobs");
+    });
 
-    fireEvent.click(screen.getByRole("button", { name: "Send Email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Download" }));
 
-    await waitFor(() => expect(navigator.share).toHaveBeenCalled());
-    expect(screen.queryByText(/Something went wrong/)).not.toBeInTheDocument();
+    expect(
+      await screen.findByText("Something went wrong building your spreadsheet.")
+    ).toBeInTheDocument();
+  });
+
+  it("releases the download URL after a moment", async () => {
+    jest.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    fillForm();
+    jest.useFakeTimers();
+    try {
+      fireEvent.click(screen.getByRole("button", { name: "Download" }));
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:picks");
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("starts empty when the saved draft is unreadable", async () => {
+    localStorage.setItem(`submitPicks:week${PICKS_WEEK}`, "{not json");
+    render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    expect(screen.getByRole("combobox")).toHaveValue("");
+  });
+
+  it("works when storage can't be written", async () => {
+    jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    fillForm();
+    expect(screen.getByRole("button", { name: "Download" })).toBeEnabled();
+    jest.restoreAllMocks();
   });
 });

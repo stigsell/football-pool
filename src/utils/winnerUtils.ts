@@ -80,18 +80,15 @@ const getWinnablePick = (player: Player, game: Game): PlayerPick | undefined => 
  * alive, never toward eliminating them wrongly.
  */
 const canPlayerStillWin = (
-  player: Player,
+  [player, playerScore]: PlayerScoreTuple,
   allPlayersScores: PlayerScoreTuple[],
   remainingGames: Game[]
 ): boolean => {
-  const scoreOf = (target: Player): number =>
-    allPlayersScores.find((score) => score[0] === target)?.[1] ?? 0;
-
   const winnablePicks = remainingGames
     .map((game) => ({ game, pick: getWinnablePick(player, game) }))
     .filter((entry) => entry.pick !== undefined);
 
-  const bestCase = scoreOf(player) + winnablePicks.length;
+  const bestCase = playerScore + winnablePicks.length;
 
   return allPlayersScores.every(([rival, rivalScore]) => {
     if (rival === player) return true;
@@ -114,6 +111,6 @@ export const getEliminatedPlayers = (
   const remainingGames = getRemainingGames(games, scores);
 
   return allPlayersScores
-    .filter((score) => !canPlayerStillWin(score[0], allPlayersScores, remainingGames))
+    .filter((score) => !canPlayerStillWin(score, allPlayersScores, remainingGames))
     .map((score) => score[0]);
 };

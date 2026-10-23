@@ -131,3 +131,35 @@ describe("fillPicks", () => {
     );
   });
 });
+
+describe("blank spreadsheet edge cases", () => {
+  it("rejects a completely empty sheet", () => {
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([]), "Sheet1");
+    const data = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
+
+    expect(() => parseBlank(data)).toThrow("No games found");
+  });
+
+  it("refuses a blank with no first sheet", async () => {
+    const blank = readBlank(8);
+    const zip = await JSZip.loadAsync(blank);
+    zip.remove("xl/worksheets/sheet1.xml");
+    const stripped = await zip.generateAsync({ type: "uint8array" });
+
+    await expect(
+      fillPicks(stripped, parseBlank(blank), "Nick", homePicks(parseBlank(blank).games), 40)
+    ).rejects.toThrow("no first sheet");
+  });
+
+  it("refuses a layout pointing at a cell the blank doesn't have", async () => {
+    const blank = readBlank(8);
+    const layout = parseBlank(blank);
+    const bad = { ...layout, games: [{ ...layout.games[0], row: 9999 }] };
+
+    await expect(
+      fillPicks(blank, bad, "Nick", { 9999: bad.games[0].home }, 40)
+    ).rejects.toThrow("missing from the blank spreadsheet");
+  });
+});
+

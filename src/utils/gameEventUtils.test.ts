@@ -6,6 +6,7 @@ import {
   isGameUnanimous,
   getMNFGame,
   getGame,
+  getRemainingGames,
 } from "./gameEventUtils";
 import {
   mockEvent,
@@ -14,7 +15,7 @@ import {
   mockEventScheduled,
   mockScoresResponse,
 } from "../__mocks__/testData";
-import { ESPNScoresResponse, Pick } from "../types";
+import { ESPNScoresResponse, Game, Pick } from "../types";
 import { Player, RickTeamCode } from "./constants";
 
 // Helper to create typed picks
@@ -207,5 +208,12 @@ describe("getGame", () => {
     const game = getGame("KC", "BUF", scoresWithVS);
     expect(game).toBeDefined();
     expect(game!.shortName).toBe("BUF VS KC");
+  });
+});
+
+describe("getRemainingGames", () => {
+  it("skips games with no matching event and finished games", () => {
+    const missing = { home: "LV", away: "DEN", picks: [] } as Game;
+    expect(getRemainingGames([missing], { events: [] })).toEqual([]);
   });
 });

@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import App from "./App";
 import * as XLSX from "xlsx";
 import { CURRENT_WEEK } from "./utils/constants";
@@ -21,6 +21,27 @@ jest.mock("react-confetti", () => {
 jest.mock("react-use/lib/useWindowSize", () => {
   return () => ({ width: 1024, height: 768 });
 });
+
+const mockScoresResponse = {
+  events: [
+    {
+      shortName: "BUF @ KC",
+      date: "2025-01-20T00:15Z",
+      status: { type: { description: "Final", completed: true }, period: 4, displayClock: "0:00" },
+      competitions: [
+        { competitors: [{ homeAway: "home", score: "27" }, { homeAway: "away", score: "24" }] },
+      ],
+    },
+    {
+      shortName: "MIA @ NE",
+      date: "2025-01-19T18:00Z",
+      status: { type: { description: "Final", completed: true }, period: 4, displayClock: "0:00" },
+      competitions: [
+        { competitors: [{ homeAway: "home", score: "21" }, { homeAway: "away", score: "28" }] },
+      ],
+    },
+  ],
+};
 
 const mockedXLSX = XLSX as jest.Mocked<typeof XLSX>;
 
@@ -82,45 +103,6 @@ describe("App", () => {
   const mockWorkbook = {
     SheetNames: ["Sheet1"],
     Sheets: { Sheet1: {} },
-  };
-
-  const mockScoresResponse = {
-    events: [
-      {
-        shortName: "BUF @ KC",
-        date: "2025-01-20T00:15Z",
-        status: {
-          type: { description: "Final", completed: true },
-          period: 4,
-          displayClock: "0:00",
-        },
-        competitions: [
-          {
-            competitors: [
-              { homeAway: "home", score: "27" },
-              { homeAway: "away", score: "24" },
-            ],
-          },
-        ],
-      },
-      {
-        shortName: "MIA @ NE",
-        date: "2025-01-19T18:00Z",
-        status: {
-          type: { description: "Final", completed: true },
-          period: 4,
-          displayClock: "0:00",
-        },
-        competitions: [
-          {
-            competitors: [
-              { homeAway: "home", score: "21" },
-              { homeAway: "away", score: "28" },
-            ],
-          },
-        ],
-      },
-    ],
   };
 
   beforeEach(() => {
@@ -250,4 +232,81 @@ describe("App", () => {
     expect(container.querySelector(".App")).toBeInTheDocument();
     expect(container.querySelector(".App-header")).toBeInTheDocument();
   });
+
+  describe("simulating games", () => {
+    const liveScores = {
+      events: mockScoresResponse.events.map((event) => ({
+        ...event,
+        status: {
+          type: { description: "In Progress", completed: false },
+          period: 2,
+          displayClock: "5:00",
+        },
+      })),
+    };
+
+    beforeEach(() => {
+      global.fetch = jest.fn((url: string) =>
+        url.includes("spreadsheets")
+          ? Promise.resolve({ arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) })
+          : Promise.resolve({ json: () => Promise.resolve(liveScores) })
+      ) as jest.Mock;
+    });
+
+    it("selects, switches, clears and resets simulated winners", async () => {
+      render(<App />);
+      const [pickKc] = await screen.findAllByTitle("Simulate KC winning");
+
+      fireEvent.click(pickKc);
+      expect(screen.getByText("Leaderboard (simulated)")).toBeInTheDocument();
+      expect(screen.getAllByText("Simulated").length).toBe(1);
+
+      // Choosing the other team changes the simulation.
+      fireEvent.click(screen.getAllByTitle("Simulate BUF winning")[0]);
+      expect(screen.getAllByText("Simulated").length).toBe(1);
+
+      // Choosing the same team again clears it.
+      fireEvent.click(screen.getAllByTitle("Simulate BUF winning")[0]);
+      expect(screen.queryByText("Simulated")).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getAllByTitle("Simulate KC winning")[0]);
+      fireEvent.click(screen.getByRole("button", { name: "Reset simulation(s)" }));
+      expect(screen.queryByText("Leaderboard (simulated)")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("navigation", () => {
+    afterEach(() => {
+      window.location.hash = "";
+    });
+
+    it("switches to Submit Picks when the hash changes and back again", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
+      render(<App />);
+      expect(screen.getByRole("link", { name: "Scoreboard" })).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
+
+      act(() => {
+        window.location.hash = "#/submit-picks";
+        window.dispatchEvent(new HashChangeEvent("hashchange"));
+      });
+      expect(screen.getByRole("link", { name: "Submit Picks" })).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
+      expect(screen.queryByText("Leaderboard")).not.toBeInTheDocument();
+
+      act(() => {
+        window.location.hash = "#/";
+        window.dispatchEvent(new HashChangeEvent("hashchange"));
+      });
+      expect(screen.getByRole("link", { name: "Scoreboard" })).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
+    });
+  });
 });
+

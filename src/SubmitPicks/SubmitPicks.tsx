@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { CURRENT_WEEK, PLAYERS } from "../utils/constants";
 import {
@@ -43,19 +43,6 @@ const saveDraft = (draft: Draft) => {
   }
 };
 
-// "Send Email" hands the file to the phone's share sheet, so it only shows on
-// touch devices that can share files.
-const canShareFiles = (): boolean => {
-  if (typeof navigator.canShare !== "function") return false;
-  if (!window.matchMedia?.("(pointer: coarse)").matches) return false;
-  try {
-    const probe = new File([""], "probe.xlsx", { type: XLSX_MIME_TYPE });
-    return navigator.canShare({ files: [probe] });
-  } catch {
-    return false;
-  }
-};
-
 const isValidPoints = (value: string): boolean => /^\d+$/.test(value.trim());
 
 function SubmitPicks() {
@@ -63,7 +50,6 @@ function SubmitPicks() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(loadDraft);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const showSendEmail = useMemo(canShareFiles, []);
 
   useEffect(() => {
     async function fetchBlank() {
@@ -141,22 +127,7 @@ function SubmitPicks() {
     }
   };
 
-  const handleSendEmail = async () => {
-    setSaveError(null);
-    try {
-      const file = await buildFile();
-      await navigator.share({
-        files: [file],
-        title: file.name,
-        text: `${draft.player}'s Week ${PICKS_WEEK} picks`,
-      });
-    } catch (err) {
-      // Closing the share sheet isn't an error worth showing.
-      if ((err as Error).name === "AbortError") return;
-      console.error(err);
-      setSaveError("Something went wrong sharing your spreadsheet.");
-    }
-  };
+
 
   return (
     <div className="SubmitPicks">
@@ -216,11 +187,6 @@ function SubmitPicks() {
         <button type="button" disabled={!isComplete} onClick={handleDownload}>
           Download
         </button>
-        {showSendEmail ? (
-          <button type="button" disabled={!isComplete} onClick={handleSendEmail}>
-            Send Email
-          </button>
-        ) : null}
       </div>
       {saveError !== null ? <p className="SubmitPicks__error">{saveError}</p> : null}
       <p>
