@@ -65,13 +65,13 @@ function Games({ games, scores, simulated = {}, onSimulate, onResetSimulations }
         />
         <label htmlFor="showUnanimousGames">Show Unanimous Games ({unanimousCount})</label>
       </div>
-      {onResetSimulations && Object.keys(simulated).length > 0 && (
+      {onResetSimulations && Object.keys(simulated).length > 0 ? (
         <div className="Filter Filter--centered">
           <button type="button" className="Game__team" onClick={onResetSimulations}>
             Reset simulation(s)
           </button>
         </div>
-      )}
+      ) : null}
       {filteredByUnanimousAndCompleted.map((game) => {
         const score = checkScore(game, scores);
         if (!score) return null;
