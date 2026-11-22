@@ -36,7 +36,7 @@ import { CURRENT_WEEK, PLAYERS, ESPN_API_URL } from "../src/utils/constants";
 import { parseFile } from "../src/FileGetter/utils";
 import { calculateAllPlayersScores, checkScore } from "../src/utils/scoreUtils";
 import { getWinners, getTiebreakWinners } from "../src/utils/winnerUtils";
-import { countLatePicks } from "../src/utils/seasonUtils";
+import { countLatePicks, countSamePicks } from "../src/utils/seasonUtils";
 import { getMNFGame } from "../src/utils/gameEventUtils";
 import type { Player } from "../src/utils/constants";
 import type { ExcelRow } from "../src/FileGetter/utils";
@@ -132,10 +132,11 @@ function scoreWeek(
   return { week: weekNum, correctPicks, winners };
 }
 
-// Late picks are read from the spreadsheets rather than the scores, so every
-// recorded week is recounted on each run: a spreadsheet corrected after its
-// week was recorded still makes it into the season's late pick totals. A week
-// whose spreadsheet is no longer around keeps the count it already has.
+// Late picks and same picks are read from the spreadsheets rather than the
+// scores, so every recorded week is recounted on each run: a spreadsheet
+// corrected after its week was recorded still makes it into the season's
+// totals. A week whose spreadsheet is no longer around keeps the counts it
+// already has.
 function recountLatePicks(weeks: SeasonWeekResult[]): number[] {
   const skipped: number[] = [];
 
@@ -153,6 +154,7 @@ function recountLatePicks(weeks: SeasonWeekResult[]): number[] {
     }
 
     week.latePicks = countLatePicks(games);
+    week.samePicks = countSamePicks(games);
   }
 
   return skipped;

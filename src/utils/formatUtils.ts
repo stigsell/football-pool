@@ -19,3 +19,7 @@ export const formatKickoff = (event: ESPNEvent): string => {
   const part = (type: string) => parts.find((p) => p.type === type)?.value;
   return `${part("weekday")} ${part("hour")}:${part("minute")}`;
 };
+
+// Dollars with cents, negatives as "-$20.00".
+export const formatMoney = (amount: number): string =>
+  (amount < 0 ? "-$" : "$") + Math.abs(amount).toFixed(2);

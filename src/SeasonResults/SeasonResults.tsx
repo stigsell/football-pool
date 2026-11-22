@@ -2,9 +2,14 @@ import {
   getSeasonTotals,
   getWeekWinners,
   getLatePickTotals,
+  getSeasonEarnings,
+  getBestWeeks,
+  getWorstWeeks,
+  getMostAlikePairs,
   getLiveWeekResult,
   withLiveWeek,
 } from "../utils/seasonUtils";
+import { formatMoney } from "../utils/formatUtils";
 import seasonResults from "../data/seasonResults.json";
 import type { ESPNScoresResponse, Game, SeasonResultsData } from "../types";
 
@@ -21,6 +26,21 @@ function SeasonResults({ week, games, scores }: SeasonResultsProps) {
   const seasonTotals = getSeasonTotals(allWeeks);
   const latePickTotals = getLatePickTotals(allWeeks).filter(([, total]) => total > 0);
   const weekWinners = getWeekWinners(weeks);
+  const earnings = getSeasonEarnings(weeks);
+  const weekDetails = (records: ReturnType<typeof getBestWeeks>): string[] =>
+    records.map(({ week: weekNum, players }) => `Week ${weekNum} \u2022 ${players.join(", ")}`);
+  const bestWeeks = getBestWeeks(weeks);
+  const worstWeeks = getWorstWeeks(weeks);
+  const alikePairs = getMostAlikePairs(allWeeks);
+  const recordCards = [
+    { label: "Best Week", number: bestWeeks[0]?.correct, details: weekDetails(bestWeeks) },
+    { label: "Worst Week", number: worstWeeks[0]?.correct, details: weekDetails(worstWeeks) },
+    {
+      label: "Most Same Picks",
+      number: alikePairs[0]?.count,
+      details: alikePairs.map(({ players }) => players.join(" & ")),
+    },
+  ].filter(({ details }) => details.length > 0);
 
   return (
     <>
@@ -93,6 +113,43 @@ function SeasonResults({ week, games, scores }: SeasonResultsProps) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="SeasonResults">
+        <table className="SeasonResults__table">
+          <thead>
+            <tr>
+              <td>
+                <b>Player</b>
+              </td>
+              <td>
+                <b>Net Winnings</b>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            {earnings.map(({ player, net }) => (
+              <tr key={player}>
+                <td>{player}</td>
+                <td>{formatMoney(net)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="SeasonResults__cards">
+        {recordCards.map(({ label, number, details }) => (
+          <div className="SeasonResults__card" key={label}>
+            <div className="SeasonResults__cardHeader">{label}</div>
+            <div className="SeasonResults__cardNumber">{number}</div>
+            {details.map((detail) => (
+              <div className="SeasonResults__cardDetail" key={detail}>
+                {detail}
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     </>
   );

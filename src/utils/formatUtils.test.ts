@@ -1,4 +1,16 @@
-import { formatInProgressGameClock, formatKickoff, formatTwoScores } from "./formatUtils";
+import { formatInProgressGameClock, formatKickoff, formatMoney, formatTwoScores } from "./formatUtils";
+
+describe("formatMoney", () => {
+  it("formats dollars with cents", () => {
+    expect(formatMoney(110)).toBe("$110.00");
+    expect(formatMoney(110 / 3)).toBe("$36.67");
+    expect(formatMoney(0)).toBe("$0.00");
+  });
+
+  it("puts the minus sign before the dollar sign", () => {
+    expect(formatMoney(-180)).toBe("-$180.00");
+  });
+});
 import { ESPNEvent } from "../types";
 
 describe("formatInProgressGameClock", () => {

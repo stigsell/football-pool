@@ -2,6 +2,12 @@ import {
   getSeasonTotals,
   getWeekWinners,
   getLatePickTotals,
+  getSeasonEarnings,
+  getBestWeeks,
+  getMostAlikePairs,
+  countSamePicks,
+  pairKey,
+  getWorstWeeks,
   getLiveWeekResult,
   countLatePicks,
   withLiveWeek,
@@ -216,5 +222,200 @@ describe("getLatePickTotals", () => {
 
   it("includes every player even with no weeks recorded", () => {
     expect(getLatePickTotals([])).toHaveLength(PLAYERS.length);
+  });
+});
+
+describe("getSeasonEarnings", () => {
+  const earningsFor = (weeks: SeasonWeekResult[]) =>
+    Object.fromEntries(
+      getSeasonEarnings(weeks).map(({ player, winnings, net }) => [
+        player,
+        { winnings, net },
+      ])
+    );
+
+  it("pays a week's winner the full $110 and nets out the $180 buy-in", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: {}, winners: ["Nick"] },
+      { week: 2, correctPicks: {}, winners: ["Nick"] },
+    ];
+
+    const earnings = earningsFor(weeks);
+    expect(earnings.Nick).toEqual({ winnings: 220, net: 40 });
+    expect(earnings.Adam).toEqual({ winnings: 0, net: -180 });
+  });
+
+  it("splits a tied week evenly", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: {}, winners: ["Ben", "Tammy"] },
+      { week: 2, correctPicks: {}, winners: ["Adam", "Connor", "Noah"] },
+    ];
+
+    const earnings = earningsFor(weeks);
+    expect(earnings.Ben.winnings).toBe(55);
+    expect(earnings.Adam.winnings).toBeCloseTo(110 / 3);
+  });
+
+  it("pays nothing for a week with no winner yet", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: { Nick: 9 } },
+      { week: 2, correctPicks: {}, winners: [] },
+    ];
+
+    expect(getSeasonEarnings(weeks).every(({ winnings }) => winnings === 0)).toBe(true);
+  });
+
+  it("sorts biggest winner first and breaks ties alphabetically", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: {}, winners: ["Noah"] },
+      { week: 2, correctPicks: {}, winners: ["Ben"] },
+      { week: 3, correctPicks: {}, winners: ["Noah"] },
+    ];
+
+    const order = getSeasonEarnings(weeks).map(({ player }) => player);
+    expect(order.slice(0, 3)).toEqual(["Noah", "Ben", "Adam"]);
+  });
+});
+
+describe("getBestWeeks and getWorstWeeks", () => {
+  const weeks: SeasonWeekResult[] = [
+    { week: 2, correctPicks: { Nick: 6, Adam: 9, Ben: 12 } },
+    { week: 1, correctPicks: { Nick: 10, Adam: 3, Ben: 8 } },
+  ];
+
+  it("finds the most correct picks by one player in a week", () => {
+    expect(getBestWeeks(weeks)).toEqual([{ week: 2, correct: 12, players: ["Ben"] }]);
+  });
+
+  it("finds the fewest correct picks by one player in a week", () => {
+    expect(getWorstWeeks(weeks)).toEqual([{ week: 1, correct: 3, players: ["Adam"] }]);
+  });
+
+  it("groups players who share the record in a week", () => {
+    const tied: SeasonWeekResult[] = [
+      { week: 1, correctPicks: { Nick: 12, Adam: 12, Ben: 8 } },
+    ];
+
+    expect(getBestWeeks(tied)).toEqual([
+      { week: 1, correct: 12, players: ["Adam", "Nick"] },
+    ]);
+  });
+
+  it("lists each week that matches the record, in playing order", () => {
+    const tied: SeasonWeekResult[] = [
+      { week: 3, correctPicks: { Nick: 5, Adam: 9 } },
+      { week: 1, correctPicks: { Ben: 5, Adam: 9 } },
+      { week: 2, correctPicks: { Nick: 7 } },
+    ];
+
+    expect(getWorstWeeks(tied)).toEqual([
+      { week: 1, correct: 5, players: ["Ben"] },
+      { week: 3, correct: 5, players: ["Nick"] },
+    ]);
+  });
+
+  it("ignores players with no score for a week", () => {
+    const partial: SeasonWeekResult[] = [{ week: 1, correctPicks: { Nick: 7 } }];
+
+    expect(getWorstWeeks(partial)).toEqual([{ week: 1, correct: 7, players: ["Nick"] }]);
+  });
+
+  it("returns nothing when no scores are recorded", () => {
+    expect(getBestWeeks([])).toEqual([]);
+    expect(getWorstWeeks([{ week: 1, correctPicks: {} }])).toEqual([]);
+  });
+});
+
+describe("pairKey", () => {
+  it("gives a pair the same key whichever player comes first", () => {
+    expect(pairKey("Adam", "Nick")).toBe("Adam|Nick");
+    expect(pairKey("Nick", "Adam")).toBe("Adam|Nick");
+  });
+});
+
+describe("countSamePicks", () => {
+  const game = (picks: Game["picks"]): Game => ({ home: "KC", away: "BUF", picks });
+
+  it("counts the games each pair picked the same team in", () => {
+    const games: Game[] = [
+      game([
+        { player: "Nick", pick: "KC" },
+        { player: "Adam", pick: "KC" },
+        { player: "Ben", pick: "BUF" },
+      ]),
+      game([
+        { player: "Nick", pick: "BUF" },
+        { player: "Adam", pick: "BUF" },
+        { player: "Ben", pick: "BUF" },
+      ]),
+    ];
+
+    expect(countSamePicks(games)).toEqual({
+      "Adam|Nick": 2,
+      "Adam|Ben": 1,
+      "Ben|Nick": 1,
+    });
+  });
+
+  it("never counts a late pick as agreeing", () => {
+    const games: Game[] = [
+      game([
+        { player: "Nick", pick: LATE_PICK },
+        { player: "Adam", pick: LATE_PICK },
+        { player: "Ben", pick: "KC" },
+      ]),
+    ];
+
+    expect(countSamePicks(games)).toEqual({});
+  });
+
+  it("returns nothing for no games", () => {
+    expect(countSamePicks([])).toEqual({});
+  });
+});
+
+describe("getMostAlikePairs", () => {
+  it("finds the pair that picked the same most across every week", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: {}, samePicks: { "Adam|Nick": 5, "Adam|Ben": 7 } },
+      { week: 2, correctPicks: {}, samePicks: { "Adam|Nick": 4, "Adam|Ben": 1 } },
+    ];
+
+    expect(getMostAlikePairs(weeks)).toEqual([
+      { players: ["Adam", "Nick"], count: 9 },
+    ]);
+  });
+
+  it("returns every pair level at the top, in player order", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: {}, samePicks: { "Ben|Nick": 6, "Adam|Alex": 6, "Adam|Ben": 2 } },
+    ];
+
+    expect(getMostAlikePairs(weeks)).toEqual([
+      { players: ["Adam", "Alex"], count: 6 },
+      { players: ["Ben", "Nick"], count: 6 },
+    ]);
+  });
+
+  it("skips a week recorded without same picks", () => {
+    const weeks: SeasonWeekResult[] = [
+      { week: 1, correctPicks: {} },
+      { week: 2, correctPicks: {}, samePicks: { "Adam|Nick": 3 } },
+    ];
+
+    expect(getMostAlikePairs(weeks)).toEqual([{ players: ["Adam", "Nick"], count: 3 }]);
+  });
+
+  it("returns nothing when no pair has agreed", () => {
+    expect(getMostAlikePairs([])).toEqual([]);
+    expect(getMostAlikePairs([{ week: 1, correctPicks: {}, samePicks: {} }])).toEqual([]);
+  });
+});
+
+describe("getLiveWeekResult same picks", () => {
+  it("includes how often each pair picked the same team", () => {
+    const live = getLiveWeekResult(12, mockGames, mockScoresResponse);
+
+    expect(live?.samePicks).toEqual(countSamePicks(mockGames));
   });
 });

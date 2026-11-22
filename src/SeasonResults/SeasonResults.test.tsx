@@ -67,8 +67,8 @@ describe("SeasonResults", () => {
 
   it("renders a season totals table with Player and # Correct columns", () => {
     render(<SeasonResults />);
-    // The late picks table has a Player column too.
-    expect(screen.getAllByText("Player")).toHaveLength(2);
+    // The late picks and earnings tables have a Player column too.
+    expect(screen.getAllByText("Player")).toHaveLength(3);
     expect(screen.getByText("# Correct")).toBeInTheDocument();
   });
 
@@ -113,6 +113,169 @@ describe("SeasonResults", () => {
 
     expect(firstRow.querySelectorAll("td")[0].textContent).toBe(player);
     expect(firstRow.querySelectorAll("td")[1].textContent).toBe(String(total));
+  });
+
+  describe("earnings", () => {
+    const earningsRows = (container: HTMLElement) =>
+      Array.from(
+        container.querySelectorAll(".SeasonResults__table")[3].querySelectorAll("tbody tr")
+      ).map((row) => {
+        const cells = row.querySelectorAll("td");
+        return [cells[0].textContent, cells[1].textContent];
+      });
+
+    // Derived from the season data so this stays true as weeks are added.
+    const recordedNet = (player: Player): number =>
+      weeks.reduce((sum, week) => {
+        const winners = week.winners ?? [];
+        return winners.includes(player) ? sum + 110 / winners.length : sum;
+      }, -180);
+
+    const money = (amount: number): string =>
+      `${amount < 0 ? "-" : ""}$${Math.abs(amount).toFixed(2)}`;
+
+    it("renders a Net Winnings column and no separate Winnings column", () => {
+      render(<SeasonResults />);
+      expect(screen.getByText("Net Winnings")).toBeInTheDocument();
+      expect(screen.queryByText("Winnings")).not.toBeInTheDocument();
+    });
+
+    it("lists every player's net winnings after the $180 buy-in", () => {
+      const { container } = render(<SeasonResults />);
+      const rows = earningsRows(container);
+
+      expect(rows.length).toBe(PLAYERS.length);
+      PLAYERS.forEach((player) => {
+        const row = rows.find(([name]) => name === player) as string[];
+        expect(row[1]).toBe(money(recordedNet(player)));
+      });
+    });
+
+    it("puts the biggest winner first", () => {
+      const { container } = render(<SeasonResults />);
+      const [first] = earningsRows(container);
+      const best = Math.max(...PLAYERS.map(recordedNet));
+
+      expect(first[1]).toBe(money(best));
+    });
+  });
+
+  describe("best and worst week cards", () => {
+    const cardFor = (container: HTMLElement, label: string): HTMLElement =>
+      Array.from(container.querySelectorAll<HTMLElement>(".SeasonResults__card")).find(
+        (card) => card.querySelector(".SeasonResults__cardHeader")?.textContent === label
+      ) as HTMLElement;
+
+    const detailsFor = (card: HTMLElement): string[] =>
+      Array.from(card.querySelectorAll(".SeasonResults__cardDetail")).map(
+        (detail) => detail.textContent as string
+      );
+
+    // Every recorded (player, week, score), derived from the season data.
+    const scores = weeks.flatMap((week) =>
+      PLAYERS.filter((player) => week.correctPicks[player] !== undefined).map(
+        (player) => ({
+          week: week.week,
+          player,
+          correct: week.correctPicks[player] as number,
+        })
+      )
+    );
+
+    const expectedDetails = (correct: number): string[] =>
+      [...new Set(scores.filter((entry) => entry.correct === correct).map((entry) => entry.week))]
+        .sort((a, b) => a - b)
+        .map((week) => {
+          const players = scores
+            .filter((entry) => entry.week === week && entry.correct === correct)
+            .map((entry) => entry.player);
+          return `Week ${week} \u2022 ${players.join(", ")}`;
+        });
+
+    it("renders no table for the best and worst weeks", () => {
+      const { container } = render(<SeasonResults />);
+      expect(container.querySelectorAll(".SeasonResults__table")).toHaveLength(4);
+    });
+
+    it("shows the best week's number, week and player", () => {
+      const { container } = render(<SeasonResults />);
+      const card = cardFor(container, "Best Week");
+      const best = Math.max(...scores.map((entry) => entry.correct));
+
+      expect(card.querySelector(".SeasonResults__cardNumber")?.textContent).toBe(String(best));
+      expect(detailsFor(card)).toEqual(expectedDetails(best));
+    });
+
+    it("shows the worst week's number, week and player", () => {
+      const { container } = render(<SeasonResults />);
+      const card = cardFor(container, "Worst Week");
+      const worst = Math.min(...scores.map((entry) => entry.correct));
+
+      expect(card.querySelector(".SeasonResults__cardNumber")?.textContent).toBe(String(worst));
+      expect(detailsFor(card)).toEqual(expectedDetails(worst));
+    });
+
+    it("lists the best week card before the worst week card", () => {
+      const { container } = render(<SeasonResults />);
+      const headers = Array.from(
+        container.querySelectorAll(".SeasonResults__cardHeader")
+      ).map((header) => header.textContent);
+
+      expect(headers.slice(0, 2)).toEqual(["Best Week", "Worst Week"]);
+    });
+  });
+
+  describe("most same picks card", () => {
+    const alikeCard = (container: HTMLElement): HTMLElement =>
+      Array.from(container.querySelectorAll<HTMLElement>(".SeasonResults__card")).find(
+        (card) => card.querySelector(".SeasonResults__cardHeader")?.textContent === "Most Same Picks"
+      ) as HTMLElement;
+
+    // Season-long same pick counts per pair, from the recorded data.
+    const pairTotals = (): Record<string, number> => {
+      const totals: Record<string, number> = {};
+      weeks.forEach((week) =>
+        Object.entries(week.samePicks ?? {}).forEach(([pair, count]) => {
+          totals[pair] = (totals[pair] ?? 0) + count;
+        })
+      );
+      return totals;
+    };
+
+    it("shows the pair who picked the same most, with how many times", () => {
+      const { container } = render(<SeasonResults />);
+      const card = alikeCard(container);
+      const totals = pairTotals();
+      const most = Math.max(...Object.values(totals));
+      const expected = Object.keys(totals)
+        .filter((pair) => totals[pair] === most)
+        .map((pair) => pair.replace("|", " & "));
+
+      expect(card.querySelector(".SeasonResults__cardNumber")?.textContent).toBe(String(most));
+      expect(
+        Array.from(card.querySelectorAll(".SeasonResults__cardDetail")).map(
+          (detail) => detail.textContent
+        )
+      ).toEqual(expected);
+    });
+
+    it("counts the picks of the week being played", () => {
+      const liveWeekNumber = Math.max(...weeks.map((week) => week.week)) + 1;
+      const recorded = Number(
+        alikeCard(render(<SeasonResults />).container).querySelector(
+          ".SeasonResults__cardNumber"
+        )?.textContent
+      );
+      const { container } = render(
+        <SeasonResults week={liveWeekNumber} games={mockGames} scores={mockScoresResponse} />
+      );
+      const live = Number(
+        alikeCard(container).querySelector(".SeasonResults__cardNumber")?.textContent
+      );
+
+      // The live games can only add to the season's best pair.
+      expect(live).toBeGreaterThanOrEqual(recorded);
+    });
   });
 
   describe("late picks", () => {

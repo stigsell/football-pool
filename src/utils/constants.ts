@@ -4,6 +4,11 @@ export const ESPN_API_URL =
 // Bump this each week when the new spreadsheet is added to public/spreadsheets.
 export const CURRENT_WEEK = 11;
 
+// Every player pays in once at the start of the season, and each week's winner
+// (or winners, splitting it evenly) takes the weekly payout.
+export const SEASON_BUY_IN = 180;
+export const WEEKLY_PAYOUT = 110;
+
 export const PLAYERS = [
   "Adam",
   "Alex",
