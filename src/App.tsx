@@ -12,6 +12,7 @@ import SubmitPicks from "./SubmitPicks/SubmitPicks";
 import "./App.css";
 import { gameKey } from "./utils/simulationUtils";
 import type { SimulatedWinners } from "./utils/simulationUtils";
+import { CURRENT_WEEK } from "./utils/constants";
 import type { RickTeamCode } from "./utils/constants";
 import type { Game, PlayersProjectedMNFPoints } from "./types";
 
@@ -54,7 +55,7 @@ function App() {
         <h1>Siegl Football Pool</h1>
         <nav className="App-nav">
           <a href="#/" aria-current={isScoreboard ? "page" : undefined}>
-            Scoreboard
+            Week {CURRENT_WEEK} Scoreboard
           </a>
           <a href={SEASON_RESULTS_HASH} aria-current={isSeasonResults ? "page" : undefined}>
             Season Results

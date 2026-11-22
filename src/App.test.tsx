@@ -299,7 +299,7 @@ describe("App", () => {
     it("switches to Submit Picks when the hash changes and back again", async () => {
       jest.spyOn(console, "error").mockImplementation(() => {});
       render(<App />);
-      expect(screen.getByRole("link", { name: "Scoreboard" })).toHaveAttribute(
+      expect(screen.getByRole("link", { name: `Week ${CURRENT_WEEK} Scoreboard` })).toHaveAttribute(
         "aria-current",
         "page"
       );
@@ -318,7 +318,7 @@ describe("App", () => {
         window.location.hash = "#/";
         window.dispatchEvent(new HashChangeEvent("hashchange"));
       });
-      expect(screen.getByRole("link", { name: "Scoreboard" })).toHaveAttribute(
+      expect(screen.getByRole("link", { name: `Week ${CURRENT_WEEK} Scoreboard` })).toHaveAttribute(
         "aria-current",
         "page"
       );
