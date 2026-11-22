@@ -217,7 +217,7 @@ describe("App", () => {
     });
     expect(screen.getByText("Games")).toBeInTheDocument();
     expect(screen.getByText("Tiebreaker")).toBeInTheDocument();
-    expect(screen.getByText("Season Results")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Season Results" })).not.toBeInTheDocument();
   });
 
   it("displays tiebreaker section with projected points header", async () => {
@@ -278,6 +278,22 @@ describe("App", () => {
   describe("navigation", () => {
     afterEach(() => {
       window.location.hash = "";
+    });
+
+    it("shows Season Results on its own page", async () => {
+      render(<App />);
+      act(() => {
+        window.location.hash = "#/season-results";
+        window.dispatchEvent(new HashChangeEvent("hashchange"));
+      });
+      expect(screen.getByRole("link", { name: "Season Results" })).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
+      expect(
+        await screen.findByRole("heading", { name: "Season Results" })
+      ).toBeInTheDocument();
+      expect(screen.queryByText("Leaderboard")).not.toBeInTheDocument();
     });
 
     it("switches to Submit Picks when the hash changes and back again", async () => {

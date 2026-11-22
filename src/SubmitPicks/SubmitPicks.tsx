@@ -14,6 +14,8 @@ import type { Player, RickTeamCode } from "../utils/constants";
 // Picks open for the week after the one being played.
 const PICKS_WEEK = CURRENT_WEEK + 1;
 const DRAFT_KEY = `submitPicks:week${PICKS_WEEK}`;
+// Not tied to a week, so the name is prefilled again next week.
+const PLAYER_KEY = "submitPicks:player";
 
 interface Draft {
   player: Player | "";
@@ -25,19 +27,33 @@ type Blank = { data: ArrayBuffer; layout: BlankLayout };
 
 // A refresh on a phone shouldn't wipe half-entered picks, but the page has to
 // work without storage too (private browsing, blocked site data).
+const loadPlayer = (): Player | "" => {
+  try {
+    const saved = localStorage.getItem(PLAYER_KEY);
+    if (saved && (PLAYERS as readonly string[]).includes(saved)) return saved as Player;
+  } catch {
+    // No remembered name.
+  }
+  return "";
+};
+
 const loadDraft = (): Draft => {
   try {
     const saved = localStorage.getItem(DRAFT_KEY);
-    if (saved) return JSON.parse(saved) as Draft;
+    if (saved) {
+      const draft = JSON.parse(saved) as Draft;
+      return { ...draft, player: draft.player || loadPlayer() };
+    }
   } catch {
     // Fall through to an empty draft.
   }
-  return { player: "", picks: {}, mnfPoints: "" };
+  return { player: loadPlayer(), picks: {}, mnfPoints: "" };
 };
 
 const saveDraft = (draft: Draft) => {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    if (draft.player) localStorage.setItem(PLAYER_KEY, draft.player);
   } catch {
     // Drafts are a convenience; losing one is fine.
   }
@@ -121,6 +137,8 @@ function SubmitPicks() {
       link.remove();
       // Safari can still be reading the URL right after the click.
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      // Only reached once the download has been triggered without error.
+      updateDraft({ picks: {} });
     } catch (err) {
       console.error(err);
       setSaveError("Something went wrong building your spreadsheet.");
@@ -133,9 +151,10 @@ function SubmitPicks() {
     <div className="SubmitPicks">
       <h2>Week {PICKS_WEEK} Picks</h2>
 
-      <label className="SubmitPicks__field">
-        Name{" "}
+      <div className="SubmitPicks__field">
         <select
+          className="SubmitPicks__name"
+          aria-label="Name"
           value={draft.player}
           onChange={(e) => updateDraft({ player: e.target.value as Player | "" })}
         >
@@ -146,7 +165,7 @@ function SubmitPicks() {
             </option>
           ))}
         </select>
-      </label>
+      </div>
 
       {games.map((game) => (
         <fieldset key={game.row} className="SubmitPicks__game">
@@ -171,6 +190,7 @@ function SubmitPicks() {
       <label className="SubmitPicks__field">
         MNF total points{" "}
         <input
+          className="SubmitPicks__points"
           type="number"
           inputMode="numeric"
           min={0}
@@ -179,11 +199,10 @@ function SubmitPicks() {
         />
       </label>
 
-      <p className="SubmitPicks__progress">
-        {pickedCount} of {games.length} picked
-      </p>
-
       <div className="SubmitPicks__actions">
+        <p className="SubmitPicks__progress">
+          {pickedCount} of {games.length} picked
+        </p>
         <button type="button" disabled={!isComplete} onClick={handleDownload}>
           Download
         </button>

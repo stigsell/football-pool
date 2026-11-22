@@ -191,6 +191,28 @@
         "Connor": 1,
         "Jake": 1
       }
+    },
+    {
+      "week": 10,
+      "correctPicks": {
+        "Adam": 11,
+        "Alex": 8,
+        "Ben": 9,
+        "Kylee": 10,
+        "Nick": 8,
+        "Rick": 9,
+        "Ricky": 9,
+        "Tammy": 10,
+        "Connor": 11,
+        "Noah": 11,
+        "Jake": 11
+      },
+      "winners": [
+        "Adam",
+        "Connor",
+        "Noah"
+      ],
+      "latePicks": {}
     }
   ]
 }

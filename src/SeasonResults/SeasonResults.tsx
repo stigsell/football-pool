@@ -19,7 +19,7 @@ function SeasonResults({ week, games, scores }: SeasonResultsProps) {
   const liveWeek = getLiveWeekResult(week, games, scores);
   const allWeeks = withLiveWeek(weeks, liveWeek);
   const seasonTotals = getSeasonTotals(allWeeks);
-  const latePickTotals = getLatePickTotals(allWeeks);
+  const latePickTotals = getLatePickTotals(allWeeks).filter(([, total]) => total > 0);
   const weekWinners = getWeekWinners(weeks);
 
   return (

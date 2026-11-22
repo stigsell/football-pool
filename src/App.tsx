@@ -17,6 +17,7 @@ import type { Game, PlayersProjectedMNFPoints } from "./types";
 
 // A hash route keeps GitHub Pages happy: every page is served from index.html.
 const SUBMIT_PICKS_HASH = "#/submit-picks";
+const SEASON_RESULTS_HASH = "#/season-results";
 
 const useHash = (): string => {
   const [hash, setHash] = useState(window.location.hash);
@@ -29,7 +30,10 @@ const useHash = (): string => {
 };
 
 function App() {
-  const isSubmitPicks = useHash() === SUBMIT_PICKS_HASH;
+  const hash = useHash();
+  const isSubmitPicks = hash === SUBMIT_PICKS_HASH;
+  const isSeasonResults = hash === SEASON_RESULTS_HASH;
+  const isScoreboard = !isSubmitPicks && !isSeasonResults;
   const [inputFile, setInputFile] = useState<string | null>(null);
   const [weekNum, setWeekNum] = useState<number>(0);
   const [games, setGames] = useState<Game[]>([]);
@@ -49,8 +53,11 @@ function App() {
       <header className="App-header">
         <h1>Siegl Football Pool</h1>
         <nav className="App-nav">
-          <a href="#/" aria-current={isSubmitPicks ? undefined : "page"}>
+          <a href="#/" aria-current={isScoreboard ? "page" : undefined}>
             Scoreboard
+          </a>
+          <a href={SEASON_RESULTS_HASH} aria-current={isSeasonResults ? "page" : undefined}>
+            Season Results
           </a>
           <a href={SUBMIT_PICKS_HASH} aria-current={isSubmitPicks ? "page" : undefined}>
             Submit Picks
@@ -58,9 +65,11 @@ function App() {
         </nav>
       </header>
 
-      {isSubmitPicks ? (
-        <SubmitPicks />
-      ) : (
+      {isSubmitPicks && <SubmitPicks />}
+
+      {/* Mounted on every page but Submit Picks so the spreadsheet is fetched
+          once and the season page can include the live week. */}
+      {!isSubmitPicks && (
         <>
           <FileGetter
             file={inputFile}
@@ -71,30 +80,38 @@ function App() {
           />
           {inputFile !== null && (
             <>
-              <h2>{weekNum > 0 && "Week " + weekNum}</h2>
+              {isScoreboard && <h2>{weekNum > 0 && "Week " + weekNum}</h2>}
               {/* One fetcher for the whole page: it hands the same scores to
                   every child, so the week's scores are fetched once. */}
               <ScoreFetcher weekNumber={weekNum} games={games} simulated={simulated}>
-                <Leaderboard
-                  games={games}
-                  playersProjectedMNFPoints={projectedMNFPoints}
-                  isSimulating={Object.keys(simulated).length > 0}
-                />
-                <Games
-                  games={games}
-                  simulated={simulated}
-                  onSimulate={toggleSimulatedWinner}
-                  onResetSimulations={() => setSimulated({})}
-                />
-                <WinScenarios
-                  games={games}
-                  playersProjectedMNFPoints={projectedMNFPoints}
-                />
-                <Tiebreaker
-                  games={games}
-                  playersProjectedMNFPoints={projectedMNFPoints}
-                />
-                <SeasonResults week={weekNum} games={games} />
+                {isScoreboard && (
+                  <Leaderboard
+                    games={games}
+                    playersProjectedMNFPoints={projectedMNFPoints}
+                    isSimulating={Object.keys(simulated).length > 0}
+                  />
+                )}
+                {isScoreboard && (
+                  <Games
+                    games={games}
+                    simulated={simulated}
+                    onSimulate={toggleSimulatedWinner}
+                    onResetSimulations={() => setSimulated({})}
+                  />
+                )}
+                {isScoreboard && (
+                  <WinScenarios
+                    games={games}
+                    playersProjectedMNFPoints={projectedMNFPoints}
+                  />
+                )}
+                {isScoreboard && (
+                  <Tiebreaker
+                    games={games}
+                    playersProjectedMNFPoints={projectedMNFPoints}
+                  />
+                )}
+                {isSeasonResults && <SeasonResults week={weekNum} games={games} />}
               </ScoreFetcher>
             </>
           )}

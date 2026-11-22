@@ -61,7 +61,7 @@ export const getWeekWinners = (
     .map((week) => ({
       week: week.week,
       // A tie the MNF points tiebreaker could not separate shares the week.
-      winner: (week.winners as Player[]).join(" & "),
+      winner: (week.winners as Player[]).join(", "),
     }));
 
 // Each player's correct picks across every recorded week, highest first.

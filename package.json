@@ -102,6 +102,14 @@
       "src/index.tsx",
       "src/reportWebVitals.ts",
       "src/types/index.ts"
-    ]
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      }
+    }
   }
 }

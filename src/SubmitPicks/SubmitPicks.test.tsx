@@ -109,6 +109,33 @@ describe("SubmitPicks", () => {
     expect(screen.getByRole("button", { name: "Download" })).toBeEnabled();
   });
 
+  it("prefills the remembered name when the week's draft is gone", async () => {
+    const { unmount } = render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    fillForm("Ben", "38");
+    unmount();
+    localStorage.removeItem(`submitPicks:week${PICKS_WEEK}`);
+
+    render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    expect(screen.getByRole("combobox")).toHaveValue("Ben");
+    expect(screen.getByRole("spinbutton")).toHaveValue(null);
+  });
+
+  it("clears the pick selections after a successful download", async () => {
+    render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    fillForm();
+    expect(screen.getAllByRole("radio").some((r) => (r as HTMLInputElement).checked)).toBe(true);
+
+    fireEvent.click(screen.getByRole("button", { name: "Download" }));
+
+    await waitFor(() =>
+      expect(screen.getAllByRole("radio").every((r) => !(r as HTMLInputElement).checked)).toBe(true)
+    );
+    expect(screen.getByRole("button", { name: "Download" })).toBeDisabled();
+  });
+
   it("shows an error when the spreadsheet can't be built for download", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
     render(<SubmitPicks />);
@@ -123,6 +150,7 @@ describe("SubmitPicks", () => {
     expect(
       await screen.findByText("Something went wrong building your spreadsheet.")
     ).toBeInTheDocument();
+    expect(screen.getAllByRole("radio").some((r) => (r as HTMLInputElement).checked)).toBe(true);
   });
 
   it("releases the download URL after a moment", async () => {
@@ -152,6 +180,41 @@ describe("SubmitPicks", () => {
     render(<SubmitPicks />);
     await screen.findByText(`Week ${PICKS_WEEK} Picks`);
     expect(screen.getByRole("combobox")).toHaveValue("");
+  });
+
+  it("fills in the remembered name when the saved draft has none", async () => {
+    localStorage.setItem("submitPicks:player", "Ben");
+    localStorage.setItem(
+      `submitPicks:week${PICKS_WEEK}`,
+      JSON.stringify({ player: "", picks: {}, mnfPoints: "" })
+    );
+    render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    expect(screen.getByRole("combobox")).toHaveValue("Ben");
+  });
+
+  it("ignores a remembered name that isn't a player", async () => {
+    localStorage.setItem("submitPicks:player", "Nobody");
+    render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    expect(screen.getByRole("combobox")).toHaveValue("");
+  });
+
+  it("starts empty when storage can't be read", async () => {
+    jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    expect(screen.getByRole("combobox")).toHaveValue("");
+    jest.restoreAllMocks();
+  });
+
+  it("doesn't remember a name until one is chosen", async () => {
+    render(<SubmitPicks />);
+    await screen.findByText(`Week ${PICKS_WEEK} Picks`);
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "30" } });
+    expect(localStorage.getItem("submitPicks:player")).toBeNull();
   });
 
   it("works when storage can't be written", async () => {

@@ -124,7 +124,7 @@ describe("getWeekWinners", () => {
       { week: 1, correctPicks: { Nick: 11, Ben: 11 }, winners: ["Ben", "Nick"] },
     ];
 
-    expect(getWeekWinners(weeks)).toEqual([{ week: 1, winner: "Ben & Nick" }]);
+    expect(getWeekWinners(weeks)).toEqual([{ week: 1, winner: "Ben, Nick" }]);
   });
 
   it("leaves out a week with no winner decided yet", () => {

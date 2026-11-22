@@ -59,7 +59,7 @@ describe("SeasonResults", () => {
     const expected = weeks
       .filter((week) => (week.winners ?? []).length > 0)
       .sort((a, b) => a.week - b.week)
-      .map((week) => [String(week.week), (week.winners ?? []).join(" & ")]);
+      .map((week) => [String(week.week), (week.winners ?? []).join(", ")]);
 
     expect(rows).toEqual(expected);
     expect(rows.length).toBe(weeks.length);
@@ -131,12 +131,13 @@ describe("SeasonResults", () => {
       expect(screen.getByText("# Late Picks")).toBeInTheDocument();
     });
 
-    it("lists every player with their season late pick count", () => {
+    it("lists only players with late picks, with their season count", () => {
       const { container } = render(<SeasonResults />);
       const latePicks = latePicksFor(container);
+      const expected = PLAYERS.filter((player) => recordedLatePicks(player) > 0);
 
-      expect(Object.keys(latePicks)).toHaveLength(PLAYERS.length);
-      PLAYERS.forEach((player) => {
+      expect(Object.keys(latePicks).sort()).toEqual([...expected].sort());
+      expected.forEach((player) => {
         expect(latePicks[player]).toBe(recordedLatePicks(player));
       });
     });
