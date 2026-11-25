@@ -7,14 +7,15 @@
  *      and recounts every recorded week's late picks
  *   2. Bumps CURRENT_WEEK in src/utils/constants.ts
  *   3. Copies the new spreadsheet into public/spreadsheets
- *   4. Checks the new spreadsheet for typos, refusing to run if it finds any
+ *   4. Checks the new spreadsheet for typos, offering to fix them in the file you
+ *      gave, and refusing to run if any are left
  *   5. Warns if the Submit Picks page has no blank for the week after
  *   6. Prints the git + deploy commands to finish the job
  *
  * Usage: npm run advance-week -- <path to next week's .xlsx> [--force]
  *
- * The typo check runs before anything is written, so a bad spreadsheet leaves
- * the repo untouched rather than half advanced. --force records the current
+ * The typo check runs before anything in the repo is written, so a bad
+ * spreadsheet leaves the repo untouched rather than half advanced. --force records the current
  * week even if some of its games have not finished, and lets an already
  * recorded week be overwritten.
  *
@@ -28,10 +29,11 @@ import {
   ROOT,
   findBlankSpreadsheet,
   findSpreadsheet,
-  checkSpreadsheet,
+  interactiveConfirm,
+  requireCleanSpreadsheet,
   readSpreadsheet,
   findWeekKey,
-} from "./check-spreadsheet";
+} from "./spreadsheet";
 import { CURRENT_WEEK, PLAYERS, ESPN_API_URL } from "../src/utils/constants";
 import { parseFile } from "../src/FileGetter/utils";
 import { calculateAllPlayersScores, checkScore } from "../src/utils/scoreUtils";
@@ -206,14 +208,7 @@ async function main(): Promise<void> {
   const nextWeek = CURRENT_WEEK + 1;
 
   // 4 (run first): a bad spreadsheet must not leave the repo half advanced.
-  const issues = checkSpreadsheet(filePath);
-  if (issues.length > 0) {
-    throw new Error(
-      `Found ${issues.length} issue(s) in "${path.basename(filePath)}":\n` +
-        issues.map((issue) => `  - ${issue}`).join("\n") +
-        "\n\nFix the spreadsheet and run again. Nothing has been changed."
-    );
-  }
+  await requireCleanSpreadsheet(filePath, interactiveConfirm());
 
   // The app reads picks from a "WK <n>" column matching CURRENT_WEEK, so a
   // spreadsheet labelled for a different week would render an empty site.
